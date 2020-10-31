@@ -1,0 +1,13 @@
+QWidget
+{
+    color: #ffcc00; 
+    background-color: #3b4054;
+    font-family: 'Helvetica'
+}
+
+QLabel
+{
+    color: #ffcc00; 
+    background-color: #3b4054;
+    font-family: 'Helvetica'
+}
