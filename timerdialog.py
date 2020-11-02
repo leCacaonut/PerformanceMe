@@ -7,4 +7,5 @@ class TimerDialog(QInputDialog):
         super(TimerDialog, self).__init__(parent)
 
         self.number, self.ok = self.getInt(self, "Set timer", "Enter number of minutes", value=45)
-        self.number *= 60
+        # self.number *= 60
+        self.number *= 1
