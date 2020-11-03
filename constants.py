@@ -2,21 +2,35 @@
 Constants
 '''
 
-from enum import IntEnum, auto
+from enum import Enum, IntEnum, auto
 from dataclasses import dataclass
 
-name_organisation = "leCacaonut"
-name_program = "PerformanceMe"
 
-default_icon_size = 60
 
-images_play = 'images/play.png'
-images_pause = 'images/pause.png'
-images_plus = 'images/plus.png'
-images_minus = 'images/minus.png'
+default_icon_size = 75
+data_filename = '/userdata'
+settings_fileName = '/settings'
 
-stylesheet_light = 'stylesheets/light.qss'
-stylesheet_dark = 'stylesheets/dark.qss'
+class Name(str, Enum):
+    organisation = "leCacaonut"
+    program = "PerformanceMe"
+
+class Stylesheets(str, Enum):
+    light_theme = 'stylesheets/light.qss'
+    dark_theme = 'stylesheets/dark.qss'
+
+class Images(str, Enum):
+    play = 'images/play.png'
+    pause = 'images/pause.png'
+    plus = 'images/plus.png'
+    minus = 'images/minus.png'
+    exit = 'images/exit.png'
+    switch = 'images/switch.png'
+
+class ActionType(IntEnum):
+    appraisal = auto()
+    listing = auto()
+    sale = auto()
 
 class PushButtons(IntEnum):
     calls_minus = auto()

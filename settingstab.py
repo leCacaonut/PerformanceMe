@@ -1,13 +1,14 @@
 """Settings tab"""
 
-from PyQt5.QtWidgets import QWidget, QGridLayout, QPushButton, QApplication
+from PyQt5.QtWidgets import QWidget, QPushButton, QApplication, QHBoxLayout
+from PyQt5.QtCore import QSettings, QStandardPaths
 
-import constants
+from constants import settings_fileName, Stylesheets
 
 class SettingsWidget(QWidget):
     def __init__(self, parent):
-        super(SettingsWidget, self).__init__(parent)
-        self.layout = QGridLayout(self)
+        super().__init__(parent)
+        self.layout = QHBoxLayout(self)
 
         # Create widgets
         self.button1 = QPushButton("Light", self)
@@ -25,8 +26,12 @@ class SettingsWidget(QWidget):
         if sApp is None:
             raise RuntimeError("No Application Found")
 
-        with open(constants.stylesheet_light, 'r') as sh:
+        with open(Stylesheets.light_theme, 'r') as sh:
             sApp.setStyleSheet(sh.read())
+
+        settings = QSettings((QStandardPaths.writableLocation(QStandardPaths.AppDataLocation)) + settings_fileName, QSettings.IniFormat)
+
+        settings.setValue('dark_theme', False)
 
 
     def SetDarkStyleSheet(self):
@@ -34,5 +39,10 @@ class SettingsWidget(QWidget):
         if sApp is None:
             raise RuntimeError("No Application Found")
 
-        with open(constants.stylesheet_dark, 'r') as sh:
+        with open(Stylesheets.dark_theme, 'r') as sh:
             sApp.setStyleSheet(sh.read())
+
+        settings = QSettings((QStandardPaths.writableLocation(QStandardPaths.AppDataLocation)) + settings_fileName, QSettings.IniFormat)
+
+        settings.setValue('dark_theme', True)
+        

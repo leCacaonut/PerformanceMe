@@ -4,13 +4,12 @@
 from datetime import timedelta
 
 # Third party
-from PyQt5.QtWidgets import QWidget, QGridLayout, QPushButton, QApplication, QLabel, QToolButton, QFrame, QSizePolicy, QMessageBox
+from PyQt5.QtWidgets import QWidget, QGridLayout, QPushButton, QLabel, QToolButton, QFrame, QSizePolicy, QMessageBox
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSignal, QSize, QTimer, Qt
 
 # First party
-import constants
-from constants import Tally, PushButtons
+from constants import default_icon_size, Tally, PushButtons, Images
 
 from subclassQLabel import StretchedLabel
 from timerdialog import TimerDialog
@@ -21,12 +20,13 @@ class TimerWidget(QWidget):
 
     # Variables
     count = 60 * 45 # 45 minutes
+    count = 3
     start = False
 
     tally = Tally()
 
     def __init__(self, parent):
-        super(TimerWidget, self).__init__(parent)
+        super().__init__(parent)
         # self.timerExpired.connect()
 
         # Define a layout to use
@@ -72,55 +72,69 @@ class TimerWidget(QWidget):
         self.setTimerButton.clicked.connect(self.SetTimerDialog)
         self.setTimerButton.setStyleSheet("font-size: 14px;")
         
+        self.lkpi.setStyleSheet("font-size: 26px;")
+        self.ltally.setStyleSheet("font-size: 26px;")
+        self.calls.setStyleSheet("font-size: 26px;")
+        self.callsTally.setStyleSheet("font-size: 26px;")
+        self.connects.setStyleSheet("font-size: 26px;")
+        self.connectsTally.setStyleSheet("font-size: 26px;")
+        self.appointments.setStyleSheet("font-size: 26px;")
+        self.bap.setStyleSheet("font-size: 26px;")
+        self.bapTally.setStyleSheet("font-size: 26px;")
+        self.map.setStyleSheet("font-size: 26px;")
+        self.mapTally.setStyleSheet("font-size: 26px;")
+        self.lap.setStyleSheet("font-size: 26px;")
+        self.lapTally.setStyleSheet("font-size: 26px;")
+        
         # self.timeLabelfont = QFont()
         # self.timeLabelfont.setFamily("RomanD")
         # self.timeLabelfont.setPointSize(50)
         # self.timeLabel.setFont(self.timeLabelfont)
         self.timeLabel.setStyleSheet("font-size: 50px;")
 
-        self.startStopButton.setIcon(QIcon(constants.images_play))
-        self.startStopButton.setIconSize(QSize(75, 75))
+        self.startStopButton.setIcon(QIcon(Images.play))
+        self.startStopButton.setIconSize(QSize(default_icon_size, default_icon_size))
         self.startStopButton.clicked.connect(self.PlayPause)
 
         self.lkpi.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.ltally.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        self.callsTallyBtn1.setIcon(QIcon(constants.images_minus))
-        self.callsTallyBtn1.setIconSize(QSize(75, 75))
+        self.callsTallyBtn1.setIcon(QIcon(Images.minus))
+        self.callsTallyBtn1.setIconSize(QSize(default_icon_size, default_icon_size))
         self.callsTallyBtn1.clicked.connect(lambda state, x=PushButtons.calls_minus: self.PushButton(x))
-        self.callsTallyBtn2.setIcon(QIcon(constants.images_plus))
-        self.callsTallyBtn2.setIconSize(QSize(75, 75))
+        self.callsTallyBtn2.setIcon(QIcon(Images.plus))
+        self.callsTallyBtn2.setIconSize(QSize(default_icon_size, default_icon_size))
         self.callsTallyBtn2.clicked.connect(lambda state, x=PushButtons.calls_plus: self.PushButton(x))
 
         self.connects.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.connectsTallyBtn1.setIcon(QIcon(constants.images_minus))
-        self.connectsTallyBtn1.setIconSize(QSize(75, 75))
+        self.connectsTallyBtn1.setIcon(QIcon(Images.minus))
+        self.connectsTallyBtn1.setIconSize(QSize(default_icon_size, default_icon_size))
         self.connectsTallyBtn1.clicked.connect(lambda state, x=PushButtons.connects_minus: self.PushButton(x))
-        self.connectsTallyBtn2.setIcon(QIcon(constants.images_plus))
-        self.connectsTallyBtn2.setIconSize(QSize(75, 75))
+        self.connectsTallyBtn2.setIcon(QIcon(Images.plus))
+        self.connectsTallyBtn2.setIconSize(QSize(default_icon_size, default_icon_size))
         self.connectsTallyBtn2.clicked.connect(lambda state, x=PushButtons.connects_plus: self.PushButton(x))
         
         self.appointments.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        self.bapTallyBtn1.setIcon(QIcon(constants.images_minus))
-        self.bapTallyBtn1.setIconSize(QSize(75, 75))
+        self.bapTallyBtn1.setIcon(QIcon(Images.minus))
+        self.bapTallyBtn1.setIconSize(QSize(default_icon_size, default_icon_size))
         self.bapTallyBtn1.clicked.connect(lambda _, x=PushButtons.BAP_minus: self.PushButton(x))
-        self.bapTallyBtn2.setIcon(QIcon(constants.images_plus))
-        self.bapTallyBtn2.setIconSize(QSize(75, 75))
+        self.bapTallyBtn2.setIcon(QIcon(Images.plus))
+        self.bapTallyBtn2.setIconSize(QSize(default_icon_size, default_icon_size))
         self.bapTallyBtn2.clicked.connect(lambda _, x=PushButtons.BAP_plus: self.PushButton(x))
 
-        self.mapTallyBtn1.setIcon(QIcon(constants.images_minus))
-        self.mapTallyBtn1.setIconSize(QSize(75, 75))
+        self.mapTallyBtn1.setIcon(QIcon(Images.minus))
+        self.mapTallyBtn1.setIconSize(QSize(default_icon_size, default_icon_size))
         self.mapTallyBtn1.clicked.connect(lambda _, x=PushButtons.MAP_minus: self.PushButton(x))
-        self.mapTallyBtn2.setIcon(QIcon(constants.images_plus))
-        self.mapTallyBtn2.setIconSize(QSize(75, 75))
+        self.mapTallyBtn2.setIcon(QIcon(Images.plus))
+        self.mapTallyBtn2.setIconSize(QSize(default_icon_size, default_icon_size))
         self.mapTallyBtn2.clicked.connect(lambda _, x=PushButtons.MAP_plus: self.PushButton(x))
 
-        self.lapTallyBtn1.setIcon(QIcon(constants.images_minus))
-        self.lapTallyBtn1.setIconSize(QSize(75, 75))
+        self.lapTallyBtn1.setIcon(QIcon(Images.minus))
+        self.lapTallyBtn1.setIconSize(QSize(default_icon_size, default_icon_size))
         self.lapTallyBtn1.clicked.connect(lambda _, x=PushButtons.LAP_minus: self.PushButton(x))
-        self.lapTallyBtn2.setIcon(QIcon(constants.images_plus))
-        self.lapTallyBtn2.setIconSize(QSize(75, 75))
+        self.lapTallyBtn2.setIcon(QIcon(Images.plus))
+        self.lapTallyBtn2.setIconSize(QSize(default_icon_size, default_icon_size))
         self.lapTallyBtn2.clicked.connect(lambda _, x=PushButtons.LAP_plus: self.PushButton(x))
 
         
@@ -146,7 +160,7 @@ class TimerWidget(QWidget):
         sep = QFrame()
         sep.setFrameShape(QFrame.HLine)
         sep.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
-        sep.setLineWidth(1)
+        # sep.setLineWidth(1)
         self.layout.addWidget(sep, 6, 0, 1, 4)
 
         self.layout.addWidget(self.appointments, 7, 0, 1, 2)
@@ -226,10 +240,10 @@ class TimerWidget(QWidget):
         if self.count != 0:
             if self.start:
                 self.start = False
-                self.startStopButton.setIcon(QIcon(constants.images_play))
+                self.startStopButton.setIcon(QIcon(Images.play))
             else:
                 self.start = True
-                self.startStopButton.setIcon(QIcon(constants.images_pause))
+                self.startStopButton.setIcon(QIcon(Images.pause))
 
     def UpdateTime(self):
         if self.start:
@@ -238,7 +252,7 @@ class TimerWidget(QWidget):
             if self.count == 0:
                 self.timeLabel.setText("Time's up!")
                 self.start = False
-                self.startStopButton.setIcon(QIcon(constants.images_play))
+                self.startStopButton.setIcon(QIcon(Images.play))
 
                 self.timerExpired.emit(self.tally)
 
@@ -248,13 +262,13 @@ class TimerWidget(QWidget):
 
     def SetTimerDialog(self):
         self.start = False
-        self.startStopButton.setIcon(QIcon(constants.images_play))
+        self.startStopButton.setIcon(QIcon(Images.play))
 
         self.timerInputDialog = TimerDialog(self)
         self.timerInputDialog.setWindowModality(Qt.ApplicationModal)
         
         if self.timerInputDialog.ok and self.timerInputDialog.number:
-            print(self.timerInputDialog.number)
+            # print(self.timerInputDialog.number)
             self.count = self.timerInputDialog.number
             self.timeLabel.setText(str(timedelta(seconds=self.count)))
             self.ResetLabels()

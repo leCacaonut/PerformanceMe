@@ -1,13 +1,70 @@
-QLabel
-{
-    color: #303030; 
-    background-color: #ffffff;
-    font-family: 'Helvetica'
-}
 
 QWidget
 {
     color: #303030; 
+    background-color: #ffffff
+}
+
+QLabel
+{
+    color: #303030; 
+    border: 0px;
     background-color: #ffffff;
     font-family: 'Helvetica'
+}
+
+QPushButton
+{
+    color: #303030;
+    background-color: #eeeeee;
+    border: 0px;
+    min-width: 40px
+}
+
+QPushButton:pressed
+{
+    background-color: #dddddd;
+}
+
+QAbstractButton
+{
+    color: #303030;
+    background-color: #eeeeee;
+    border: 0px;
+    min-width: 40px
+}
+
+QAbstractButton:pressed
+{
+    background-color: #dddddd;
+}
+
+QTabWidget
+{ 
+    border: 0px;
+    padding: 0px;
+    margin: 0px;
+    background: #ffffff
+}
+
+QTabWidget::tab-bar {
+    alignment: center;
+}
+
+QTabWidget::pane
+{ 
+    border: 0px;
+    top: -1px;
+    background: #ffffff
+}
+
+QTabBar::tab {
+    border: 1px #303030; 
+    padding: 10px;
+    background: #eeeeee
+}
+
+QTabBar::tab:selected { 
+    margin-bottom: -1px;
+    background: #dddddd
 }
