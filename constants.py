@@ -2,14 +2,16 @@
 Constants
 '''
 
+import uuid
+
 from enum import Enum, IntEnum, auto
 from dataclasses import dataclass
-
 
 
 default_icon_size = 75
 data_filename = '/userdata'
 settings_fileName = '/settings'
+uuid_namespace = uuid.UUID('77187714-5070-6165-3180-086183631538')
 
 class Name(str, Enum):
     organisation = "leCacaonut"
@@ -25,14 +27,14 @@ class Images(str, Enum):
     plus = 'images/plus.png'
     minus = 'images/minus.png'
     exit = 'images/exit.png'
-    switch = 'images/switch.png'
+    hamburger = 'images/hamburger.png'
 
 class ActionType(IntEnum):
     appraisal = auto()
     listing = auto()
     sale = auto()
 
-class PushButtons(IntEnum):
+class TimerPushButtons(IntEnum):
     calls_minus = auto()
     calls_plus = auto()
     connects_minus = auto()
@@ -51,3 +53,10 @@ class Tally:
     BAP = 0
     MAP = 0
     LAP = 0
+
+motivational_string = """
+    <u><b><i>YOU SET YOUR GOAL TO ZERO</i></b></u> <p> Nothing in life is worthwhile...unless you take <i>risks</i>. 
+    <b>Nothing</b>. There is no passion to be found playing <i>small</i>, and settling for a life that's <i>less</i>
+    than the one you're <i>capable of living</i>.</p><p> Don't be afraid to <b>fail big</b>...to <b>dream big</b>. 
+    <br> But remember, dreams without <b><i>GOALS</i></b> are just <b>dreams</b>...</p>
+"""
