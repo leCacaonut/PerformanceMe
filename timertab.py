@@ -1,4 +1,4 @@
-"""Settings tab"""
+"""Timer tab"""
 
 # Standard
 from datetime import timedelta
@@ -11,8 +11,8 @@ from PyQt5.QtGui import QIcon
 # First party
 from constants import default_icon_size, Tally, TimerPushButtons, Images
 
-from subclassQLabel import StretchedLabel
-from timerdialog import TimerDialog
+from customsubclasses import StretchedLabel
+from timerpopup import TimerDialog
 
 class TimerWidget(QWidget):
     # pylint: disable=too-many-instance-attributes
@@ -34,7 +34,7 @@ class TimerWidget(QWidget):
         # Create widgets
         self.timerInputDialog = None
         self.setTimerButton = QPushButton("Set timer", self)
-        self.timeLabel = QLabel("0:45:00", self)
+        self.timeLabel = QLabel(f"{timedelta(seconds=self.count)}", self)
         self.startStopButton = QToolButton(self)
 
         self.lkpi = StretchedLabel("KPI", self)
@@ -69,7 +69,7 @@ class TimerWidget(QWidget):
 
         # Widget configuration
         self.setTimerButton.clicked.connect(self.SetTimerDialog)
-        self.setTimerButton.setStyleSheet("font-size: 14px; font-family: 'Helvetica';")
+        self.setTimerButton.setStyleSheet("font-size: 16px;")
         
         self.lkpi.setStyleSheet("font-size: 26px;")
         self.ltally.setStyleSheet("font-size: 26px;")
@@ -190,42 +190,42 @@ class TimerWidget(QWidget):
         if button == TimerPushButtons.calls_minus:
             if self.tally.calls > 0:
                 self.tally.calls -= 1
-            self.callsTally.setText(str(self.tally.calls))
+            self.callsTally.setText(f"{self.tally.calls}")
         if button == TimerPushButtons.calls_plus:
             self.tally.calls += 1
-            self.callsTally.setText(str(self.tally.calls))
+            self.callsTally.setText(f"{self.tally.calls}")
 
         if button == TimerPushButtons.connects_minus:
             if self.tally.connects > 0:
                 self.tally.connects -= 1
-            self.connectsTally.setText(str(self.tally.connects))
+            self.connectsTally.setText(f"{self.tally.connects}")
         if button == TimerPushButtons.connects_plus:
             self.tally.connects += 1
-            self.connectsTally.setText(str(self.tally.connects))
+            self.connectsTally.setText(f"{self.tally.connects}")
         
         if button == TimerPushButtons.BAP_minus:
             if self.tally.BAP > 0:
                 self.tally.BAP -= 1
-            self.bapTally.setText(str(self.tally.BAP))
+            self.bapTally.setText(f"{self.tally.BAP}")
         if button == TimerPushButtons.BAP_plus:
             self.tally.BAP += 1
-            self.bapTally.setText(str(self.tally.BAP))
+            self.bapTally.setText(f"{self.tally.BAP}")
 
         if button == TimerPushButtons.MAP_minus:
             if self.tally.MAP > 0:
                 self.tally.MAP -= 1
-            self.mapTally.setText(str(self.tally.MAP))
+            self.mapTally.setText(f"{self.tally.MAP}")
         if button == TimerPushButtons.MAP_plus:
             self.tally.MAP += 1
-            self.mapTally.setText(str(self.tally.MAP))
+            self.mapTally.setText(f"{self.tally.MAP}")
 
         if button == TimerPushButtons.LAP_minus:
             if self.tally.LAP > 0:
                 self.tally.LAP -= 1
-            self.lapTally.setText(str(self.tally.LAP))
+            self.lapTally.setText(f"{self.tally.LAP}")
         if button == TimerPushButtons.LAP_plus:
             self.tally.LAP += 1
-            self.lapTally.setText(str(self.tally.LAP))
+            self.lapTally.setText(f"{self.tally.LAP}")
     
     def PlayPause(self):
         if self.count != 0:
@@ -235,6 +235,8 @@ class TimerWidget(QWidget):
             else:
                 self.start = True
                 self.startStopButton.setIcon(QIcon(Images.pause))
+        else:
+            self.SetTimerDialog()
 
     def UpdateTime(self):
         if self.start:
@@ -248,7 +250,7 @@ class TimerWidget(QWidget):
                 self.timerExpired.emit(self.tally)
 
             else:
-                self.timeLabel.setText(str(timedelta(seconds=self.count)))
+                self.timeLabel.setText(f"{timedelta(seconds=self.count)}")
 
 
     def SetTimerDialog(self):
@@ -258,7 +260,7 @@ class TimerWidget(QWidget):
         self.timerInputDialog = TimerDialog(self.parent().parent())
         if self.timerInputDialog.exec():
             self.count = self.timerInputDialog.spinBox.value() * 60
-            self.timeLabel.setText(str(timedelta(seconds=self.count)))
+            self.timeLabel.setText(f"{timedelta(seconds=self.count)}")
             self.ResetLabels()
         
             

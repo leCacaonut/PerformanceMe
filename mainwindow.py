@@ -1,12 +1,14 @@
-"""GUI"""
+"""The main window for the GUI"""
 
+import os
 import sys
+import json
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget, QWidget, QVBoxLayout, QShortcut
 from PyQt5.QtCore import Qt, QSize, QSettings, QMargins, QStandardPaths, QPoint, pyqtSlot
 from PyQt5.QtGui import QIcon
 
-from constants import Name, Stylesheets, ActionType, settings_fileName, TimerPushButtons
+from constants import Name, Stylesheets, ActionType, settings_file_name, data_file_name, data_file_extension, TimerPushButtons
 
 from dashboardtab import DashboardWidget
 from timertab import TimerWidget
@@ -14,15 +16,30 @@ from detailstab import DetailsWidget
 from settingstab import SettingsWidget
 
 class MainWindow(QMainWindow):
-    appraisalData = {}
-    listingData = {}
-    saleData = {}
+    propertyData = {}
+    # appraisalData = {}
+    # listingData = {}
+    # saleData = {}
+
+    appraisals = 0
+    listings = 0
+    sales = 0
+    income = 0
+
+    appraisalGoal = 2
+    listingGoal = 1
+    saleGoal = 1
+    incomeGoal = 50000
+
+    callSessions = 0
+    calls = 0
+    connects = 0
+    appointments = 0
     
     def __init__(self):
         super().__init__()
         self.setWindowTitle("PerformanceMe")
-        self.setMinimumSize(QSize(400, 700))
-        self.resize(700, 700)
+        self.setMinimumSize(QSize(400, 600))
         self.setContentsMargins(QMargins(3, 3, 3, 3))
         
         self.tabWidget = TabWidget(self)
@@ -35,33 +52,26 @@ class MainWindow(QMainWindow):
         self.initShortcuts()
         self.SetCurrentTabShortcuts(0)
 
-    def initSettings(self):
+        self.LoadData()
+        # Get dashboard to update after loading data
+        self.tabWidget.dashboardWidget.UpdateText()
+
+    def initSettings(self): 
         #pylint: disable=broad-except
-        self.settings = QSettings((QStandardPaths.writableLocation(QStandardPaths.AppDataLocation)) + settings_fileName, QSettings.IniFormat)
+        self.settings = QSettings((QStandardPaths.writableLocation(QStandardPaths.AppDataLocation)) + settings_file_name, QSettings.IniFormat)
         
-        for setting in [lambda x=self.settings.value('window_position'): self.move(x),
-                        lambda x=self.settings.value('window_size'): self.resize(x),
+        for setting in [lambda x=self.settings.value('window_position', QPoint(0, 0)): self.move(x),
+                        lambda x=self.settings.value('window_size', QSize(600, 600)): self.resize(x),
                         self.initTheme]:
-            try:
-                setting()
-            except Exception as e:
-                print(e)
+            setting()
                 
         self.tabWidget.settingsWidget.stayOnTopSignal.connect(self.ToggleWindowStayOnTop)
-
-    @pyqtSlot(bool)
-    def ToggleWindowStayOnTop(self, isOnTop):
-        if isOnTop:
-            self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
-        else:
-            self.setWindowFlags(self.windowFlags() & ~Qt.WindowStaysOnTopHint)
-        self.show()
 
     def initShortcuts(self):
         # Global tab switching
         self.tabSwitchList = []
         for i in range(4):
-            self.tabSwitchList.append(QShortcut("ctrl+" + str(i + 1), self))
+            self.tabSwitchList.append(QShortcut(f"ctrl+{i + 1}", self))
             self.tabSwitchList[i].activated.connect(lambda x=i: self.tabWidget.tabs.setCurrentIndex(x))
 
         # Enable/disable shortcuts on tab change    
@@ -73,8 +83,9 @@ class MainWindow(QMainWindow):
             # Dashboard
             "a", "l", "s", "g",
             # Timer
-            "s", " ", "1", "2", "3", "4", "5", "shift+1", "shift+2", "shift+3", "shift+4", "shift+5"
+            "s", " ", "1", "2", "3", "4", "5", "shift+1", "shift+2", "shift+3", "shift+4", "shift+5",
             # Details None
+            ",", "."
             # Settings None
         ]
         
@@ -96,9 +107,10 @@ class MainWindow(QMainWindow):
             lambda: self.tabWidget.timerWidget.PushButton(TimerPushButtons.connects_minus),
             lambda: self.tabWidget.timerWidget.PushButton(TimerPushButtons.BAP_minus),
             lambda: self.tabWidget.timerWidget.PushButton(TimerPushButtons.MAP_minus),
-            lambda: self.tabWidget.timerWidget.PushButton(TimerPushButtons.LAP_minus)
-
+            lambda: self.tabWidget.timerWidget.PushButton(TimerPushButtons.LAP_minus),
             # Details None
+            self.tabWidget.detailsWidget.ChangeSortType,
+            self.tabWidget.detailsWidget.ChangeSortOrder
             # Settings None
         ]
 
@@ -112,16 +124,25 @@ class MainWindow(QMainWindow):
                 shortcut.setEnabled(True)
             for shortcut in self.shortcutList[4:]:
                 shortcut.setEnabled(False)
+            # Conveniently put this here
+            self.UpdateDataCount()
+            self.tabWidget.dashboardWidget.UpdateText()
         elif self.tabWidget.tabs.tabText(tabIndex) == "Timer":
-            for shortcut in self.shortcutList[:4]:
+            for shortcut in self.shortcutList:
                 shortcut.setEnabled(False)
-            for shortcut in self.shortcutList[4:]:
+            for shortcut in self.shortcutList[4:16]:
                 shortcut.setEnabled(True)
         elif self.tabWidget.tabs.tabText(tabIndex) == "Details":
+            for shortcut in self.shortcutList[:16]:
+                shortcut.setEnabled(False)
+            for shortcut in self.shortcutList[16:18]:
+                shortcut.setEnabled(True)
             # Conveniently put this here
             self.tabWidget.detailsWidget.UpdateList()
 
-        # elif self.tabWidget.tabs.tabText(tabIndex) == "Settings":
+        elif self.tabWidget.tabs.tabText(tabIndex) == "Settings":
+            for shortcut in self.shortcutList:
+                shortcut.setEnabled(False)
 
         # Templates
         # if self.tabWidget.tabs.tabText(tabIndex) == "Dashboard":
@@ -131,12 +152,101 @@ class MainWindow(QMainWindow):
 
     def initTheme(self):
         sApp = QApplication.instance()
-        if self.settings.value('dark_theme', type=bool) is False:
+        if self.settings.value('dark_theme', False, type=bool) is False:
             with open(Stylesheets.light_theme, 'r') as sh:
                 sApp.setStyleSheet(sh.read())
         else:
             with open(Stylesheets.dark_theme, 'r') as sh:
                 sApp.setStyleSheet(sh.read())
+
+    def LoadData(self):
+        if not os.path.exists(QStandardPaths.writableLocation(QStandardPaths.AppDataLocation)):
+            os.makedirs(QStandardPaths.writableLocation(QStandardPaths.AppDataLocation))
+        try:
+            with open(QStandardPaths.writableLocation(QStandardPaths.AppDataLocation) + data_file_name + data_file_extension, 'r') as file:
+                try:
+                    jsonData = json.load(file)
+                    # Default values are already set at start of class
+
+                    self.propertyData = jsonData.get('propertydata', self.propertyData)
+                    # self.appraisalData = jsonData.get('appraisaldata', self.appraisalData)
+                    # self.listingData = jsonData.get('listingdata', self.listingData)
+                    # self.saleData = jsonData.get('saledata', self.saleData)
+                    
+                    self.appraisalGoal = jsonData.get('appraisalgoal', self.appraisalGoal)
+                    self.listingGoal = jsonData.get('listinggoal', self.listingGoal)
+                    self.saleGoal = jsonData.get('salegoal', self.saleGoal)
+                    self.incomeGoal = jsonData.get('incomegoal', self.incomeGoal)
+                    self.callSessions = jsonData.get('call_sessions', self.callSessions)
+                    self.calls = jsonData.get('calls', self.calls)
+                    self.connects = jsonData.get('connects', self.connects)
+                    self.appointments = jsonData.get('appointments', self.appointments)
+                
+                except json.JSONDecodeError as e:
+                    print(e)
+                
+        except FileNotFoundError as e:
+            print("FILENOTFOUND: " + f"{e}")
+            self.SaveData()
+
+        self.UpdateDataCount()
+
+    def SaveSettings(self):
+        self.settings.setValue('window_position', self.pos())
+        self.settings.setValue('window_size', self.size())
+
+    def SaveData(self):
+        # print("Saving data...")
+        data = {
+            'propertydata': self.propertyData,
+            'appraisalgoal': self.appraisalGoal,
+            'listinggoal': self.listingGoal,
+            'salegoal': self.saleGoal,
+            'incomegoal': self.incomeGoal,
+            'call_sessions': self.callSessions,
+            'calls': self.calls,
+            'connects': self.connects,
+            'appointments': self.appointments
+        }
+
+        with open(QStandardPaths.writableLocation(QStandardPaths.AppDataLocation) + data_file_name + data_file_extension, 'w+') as file:
+            json.dump(data, file, indent=4)
+
+    def ResetData(self):
+        self.propertyData = {}
+        self.appraisals = 0
+        self.listings = 0
+        self.sales = 0
+        self.income = 0
+        self.appraisalGoal = 2
+        self.listingGoal = 1
+        self.saleGoal = 1
+        self.incomeGoal = 50000
+        self.callSessions = 0
+        self.calls = 0
+        self.connects = 0
+        self.appointments = 0
+
+    @pyqtSlot(bool)
+    def ToggleWindowStayOnTop(self, isOnTop):
+        if isOnTop:
+            self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
+        else:
+            self.setWindowFlags(self.windowFlags() & ~Qt.WindowStaysOnTopHint)
+        self.show()
+
+    def UpdateDataCount(self):
+        # Calculate number of appraisals, listings, sales, income
+        # See if an action's date exists
+        self.appraisals = self.listings = self.sales = self.income = 0
+        for data in self.propertyData:
+            if 'appraisal_date' in self.propertyData[data]:
+                self.appraisals += 1
+            if 'listing_date' in self.propertyData[data]:
+                self.listings += 1
+            if 'sale_date' in self.propertyData[data]:
+                self.sales += 1
+                self.income += self.propertyData[data]['price'] * self.propertyData[data]['commission'] / 100
 
     def mousePressEvent(self, event):
         self.oldPos = event.globalPos()
@@ -147,15 +257,12 @@ class MainWindow(QMainWindow):
         
         self.oldPos = event.globalPos()
 
-    def saveSettings(self):
-        self.settings.setValue('window_position', self.pos())
-        self.settings.setValue('window_size', self.size())
-
     def closeEvent(self, _):
-        self.saveSettings()
+        self.SaveSettings()
+        self.SaveData()
         for children in self.findChildren(QWidget):
             children.close()
-        print("Quitting...")
+        # print("Quitting...")
         
 
 class TabWidget(QWidget):
@@ -215,7 +322,7 @@ if __name__ == "__main__":
     # window.setWindowFlag(Qt.FramelessWindowHint)
     window.setWindowFlags(Qt.CustomizeWindowHint)
     
-    window.setWindowIcon(QIcon('images/plus.png'))
+    window.setWindowIcon(QIcon('images/icon.ico'))
     window.show()
 
     sys.exit(app.exec())

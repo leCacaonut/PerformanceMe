@@ -1,4 +1,4 @@
-"""Settings tab"""
+"""Dashboard tab"""
 
 import os
 import json
@@ -8,9 +8,9 @@ from PyQt5.QtWidgets import QWidget, QGridLayout, QVBoxLayout, QToolButton, QLab
 from PyQt5.QtCore import pyqtSlot, QSize, Qt, QStandardPaths, QDate
 from PyQt5.QtGui import QIcon
 
-from constants import default_icon_size, data_filename, uuid_namespace, Tally, Images, ActionType
+from constants import default_icon_size, uuid_namespace, Tally, Images, ActionType
 
-from subclassQLabel import StretchedLabel
+from customsubclasses import StretchedLabel, CustomToolButton
 from dashboardpopup import DashboardAdd, DashboardSetGoal
 
 class DashboardWidget(QWidget):
@@ -18,51 +18,32 @@ class DashboardWidget(QWidget):
     addview = None
     goaldialog = None
 
-    # Use common parent to transfer data
-    # appraisalData = {}
-    # listingData = {}
-    # saleData = {}
-
-    appraisals = 0
-    listings = 0
-    sales = 0
-    income = 0
-
-    appraisalGoal = 2
-    listingGoal = 1
-    saleGoal = 1
-    incomeGoal = 50000
-
-    callSessions = 0
-    calls = 0
-    connects = 0
-    connectsRatio = 0
-    appointments = 0
-
     def __init__(self, parent):
         super().__init__(parent)
+        self.dataParent = parent.parent()
+
         # Define a layout to use
         self.layoutBase = QVBoxLayout(self)
         self.layoutTop = QGridLayout()
         self.layoutBottom = QGridLayout()
 
-        self.LoadData()
+        # self.LoadData()
 
         # Create widgets
         # First section
         self.nAppraisals = QLabel(self)
         self.lAppraisals = QLabel("Appraisals", self)
+        self.iAppraisals = CustomToolButton(self)
         self.nListings = QLabel(self)
         self.lListings = QLabel("Listings", self)
+        self.iListings = CustomToolButton(self)
         self.nSales = QLabel(self)
         self.lSales = QLabel("Sales", self)
+        self.iSales = CustomToolButton(self)
         self.nIncome = QLabel(self)
         self.lIncome = QLabel("Income", self)
+        self.iIncome = CustomToolButton(self)
 
-        self.iAppraisals = QToolButton(self)
-        self.iListings = QToolButton(self)
-        self.iSales = QToolButton(self)
-        self.iIncome = QToolButton(self)
 
         # Second section
         self.lCallSessions = StretchedLabel("Call Sessions", self)
@@ -75,43 +56,40 @@ class DashboardWidget(QWidget):
         self.nConnectsRatio = StretchedLabel(self)
         self.lAppointments = StretchedLabel("Appointments", self)
         self.nAppointments = StretchedLabel(self)
-        self.bSwitchTimeline = QToolButton(self)
+        self.bQuit = QToolButton(self)
 
 
         # Widget configuration
         # Top
         self.nAppraisals.setWordWrap(True)
-        self.nAppraisals.setStyleSheet("font-size: 26px;")
-        self.lAppraisals.setStyleSheet("font-size: 16px; font-weight: bold;")
+        self.nAppraisals.setAlignment(Qt.AlignCenter)
+        self.lAppraisals.setAlignment(Qt.AlignCenter)
+        self.lAppraisals.setStyleSheet("font-size: 20px; font-weight: bold;")
         self.iAppraisals.setIcon(QIcon(Images.plus))
-        self.iAppraisals.setIconSize(QSize(40, 40))
-        self.iAppraisals.setToolButtonStyle(Qt.ToolButtonStyle(Qt.ToolButtonTextUnderIcon))
         self.iAppraisals.setText("Add appraisal")
         self.iAppraisals.clicked.connect(lambda: self.AddAction(ActionType.appraisal))
+
         self.nListings.setWordWrap(True)
-        self.nListings.setStyleSheet("font-size: 26px;")
-        self.lListings.setStyleSheet("font-size: 16px; font-weight: bold;")
+        self.nListings.setAlignment(Qt.AlignCenter)
+        self.lListings.setAlignment(Qt.AlignCenter)
+        self.lListings.setStyleSheet("font-size: 20px; font-weight: bold;")
         self.iListings.setIcon(QIcon(Images.plus))
-        self.iListings.setIconSize(QSize(40, 40))
-        self.iListings.setToolButtonStyle(Qt.ToolButtonStyle(Qt.ToolButtonTextUnderIcon))
         self.iListings.setText("Add listing")
         self.iListings.clicked.connect(lambda: self.AddAction(ActionType.listing))
+
         self.nSales.setWordWrap(True)
-        self.nSales.setStyleSheet("font-size: 26px;")
-        self.lSales.setStyleSheet("font-size: 16px; font-weight: bold;")
+        self.nSales.setAlignment(Qt.AlignCenter)
+        self.lSales.setAlignment(Qt.AlignCenter)
+        self.lSales.setStyleSheet("font-size: 20px; font-weight: bold;")
         self.iSales.setIcon(QIcon(Images.plus))
-        self.iSales.setIconSize(QSize(40, 40))
-        self.iSales.setToolButtonStyle(Qt.ToolButtonStyle(Qt.ToolButtonTextUnderIcon))
         self.iSales.setText("Add sale")
         self.iSales.clicked.connect(lambda: self.AddAction(ActionType.sale))
+
         self.nIncome.setWordWrap(True)
-        self.nIncome.setStyleSheet("font-size: 26px;")
-        # self.nIncome.setSizePolicy(QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred))
-        self.lIncome.setStyleSheet("font-size: 16px; font-weight: bold;")
+        self.nIncome.setAlignment(Qt.AlignCenter)
+        self.lIncome.setAlignment(Qt.AlignCenter)
+        self.lIncome.setStyleSheet("font-size: 20px; font-weight: bold;")
         self.iIncome.setIcon(QIcon(Images.hamburger))
-        self.iIncome.setIconSize(QSize(40, 40))
-        self.iIncome.setToolButtonStyle(Qt.ToolButtonStyle(Qt.ToolButtonTextUnderIcon))
-        self.iIncome.setSizePolicy(QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred))
         self.iIncome.setText("Set goals")
         self.iIncome.clicked.connect(self.SetGoals)
         
@@ -138,10 +116,10 @@ class DashboardWidget(QWidget):
         self.nAppointments.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
         self.nAppointments.setStyleSheet("font-size: 40px;")
         
-        self.bSwitchTimeline.setIcon(QIcon(Images.exit))
-        self.bSwitchTimeline.setIconSize(QSize(default_icon_size, default_icon_size))
-        self.bSwitchTimeline.setToolButtonStyle(Qt.ToolButtonStyle(Qt.ToolButtonTextUnderIcon))
-        self.bSwitchTimeline.setText("Save && exit")
+        self.bQuit.setIcon(QIcon(Images.exit))
+        self.bQuit.setIconSize(QSize(default_icon_size, default_icon_size))
+        self.bQuit.setToolButtonStyle(Qt.ToolButtonStyle(Qt.ToolButtonTextUnderIcon))
+        self.bQuit.setText("Save && exit")
 
         # self.lCallSessions.setSizePolicy(QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred))
         # self.nCallSessions.setSizePolicy(QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred))
@@ -153,11 +131,11 @@ class DashboardWidget(QWidget):
         # self.nConnectsRatio.setSizePolicy(QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred))
         self.lAppointments.setSizePolicy(QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred))
         # self.nAppointments.setSizePolicy(QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred))
-        # self.bSwitchTimeline.setSizePolicy(QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred))
+        # self.bQuit.setSizePolicy(QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred))
 
         # Setup buttons
-        # self.bSwitchTimeline.clicked.connect(self.SwitchViews)
-        self.bSwitchTimeline.clicked.connect(self.parent().parent().close)
+        # self.bQuit.clicked.connect(self.SwitchViews)
+        self.bQuit.clicked.connect(self.parent().parent().close)
 
         # Add widgets
         self.layoutTop.addWidget(self.nAppraisals, 0, 0)
@@ -190,7 +168,7 @@ class DashboardWidget(QWidget):
         self.layoutBottom.addWidget(self.nConnectsRatio, 3, 1)
         self.layoutBottom.addWidget(self.lAppointments, 4, 0)
         self.layoutBottom.addWidget(self.nAppointments, 5, 0)
-        self.layoutBottom.addWidget(self.bSwitchTimeline, 4, 1, 2, 1, alignment=Qt.AlignHCenter)
+        self.layoutBottom.addWidget(self.bQuit, 4, 1, 2, 1, alignment=Qt.AlignHCenter)
         self.layoutBase.addLayout(self.layoutBottom)
 
         self.layoutBottom.setColumnStretch(0, 3)
@@ -199,128 +177,79 @@ class DashboardWidget(QWidget):
         self.layoutBase.setStretch(1, 0)
         self.layoutBase.setStretch(2, 3)
         
-        self.UpdateText()
-        
-    def LoadData(self):
-        if not os.path.exists(QStandardPaths.writableLocation(QStandardPaths.AppDataLocation)):
-            os.makedirs(QStandardPaths.writableLocation(QStandardPaths.AppDataLocation))
-        try:
-            with open(QStandardPaths.writableLocation(QStandardPaths.AppDataLocation) + data_filename, 'r') as file:
-                try:
-                    jsonData = json.load(file)
-                    # Default values are already set at start of class
-                    self.parent().parent().appraisalData = jsonData.get('appraisaldata', self.parent().parent().appraisalData)
-                    self.parent().parent().listingData = jsonData.get('listingdata', self.parent().parent().listingData)
-                    self.parent().parent().saleData = jsonData.get('saledata', self.parent().parent().saleData)
-                    
-                    self.appraisalGoal = jsonData.get('appraisalgoal', self.appraisalGoal)
-                    self.listingGoal = jsonData.get('listinggoal', self.listingGoal)
-                    self.saleGoal = jsonData.get('salegoal', self.saleGoal)
-                    self.incomeGoal = jsonData.get('incomegoal', self.incomeGoal)
-                    self.callSessions = jsonData.get('call_sessions', self.callSessions)
-                    self.calls = jsonData.get('calls', self.calls)
-                    self.connects = jsonData.get('connects', self.connects)
-                    self.appointments = jsonData.get('appointments', self.appointments)
-                
-                except json.JSONDecodeError as e:
-                    print(e)
-
-                # for data in self.parent().parent().appraisalData:
-                #     print(self.parent().parent().appraisalData[data])
-                # for data in self.parent().parent().listingData:
-                #     print(self.parent().parent().listingData[data])
-                # for data in self.parent().parent().saleData:
-                #     print(self.parent().parent().saleData[data])
-                
-        except FileNotFoundError as e:
-            print(e)
-
-    def SaveData(self):
-        print("Saving data...")
-        data = {'appraisaldata': self.parent().parent().appraisalData,
-            'listingdata': self.parent().parent().listingData,
-            'saledata': self.parent().parent().saleData,
-            'income': self.income,
-            'appraisalgoal': self.appraisalGoal,
-            'listinggoal': self.listingGoal,
-            'salegoal': self.saleGoal,
-            'incomegoal': self.incomeGoal,
-            'call_sessions': self.callSessions,
-            'calls': self.calls,
-            'connects': self.connects,
-            'appointments': self.appointments}
-
-        with open(QStandardPaths.writableLocation(QStandardPaths.AppDataLocation) + data_filename, 'w+') as file:
-            json.dump(data, file, indent=4)
-
     @pyqtSlot(ActionType, str, QDate)
     @pyqtSlot(ActionType, str, QDate, int, float)
     def UpdateDashboard(self, actionType, address, date, price=0, commission=0):
         #pylint: disable=too-many-arguments
-        date = date.toString('dd/MM/yyyy')
-        if actionType == ActionType.appraisal:
-            self.parent().parent().appraisalData |= {str(uuid.uuid5(uuid_namespace, address)): {'address': address, 'date': date}}
-        elif actionType == ActionType.listing:
-            self.parent().parent().listingData |= {str(uuid.uuid5(uuid_namespace, address)): {'address': address, 'date': date}}
-        elif actionType == ActionType.sale:
-            self.parent().parent().saleData |= {str(uuid.uuid5(uuid_namespace, address)): {'address': address, 'date': date, 'price': price, 'commission': commission}}
+        date = date.toString('yyyy/MM/dd')
+        a_uuid = f"{uuid.uuid5(uuid_namespace, address)}"
+        # If uuid already exists in the list, use it
+        if a_uuid in self.dataParent.propertyData:
+            data = self.dataParent.propertyData[a_uuid]
+        # Otherwise, create a new address
+        else:
+            data = {'address': address}
+
+        if actionType is ActionType.appraisal:
+            data |= {'appraisal_date': date}
+        elif actionType is ActionType.listing:
+            data |= {'listing_date': date}
+        elif actionType is ActionType.sale:
+            data |= {'sale_date': date, 'price': price, 'commission': commission}
+        
+        self.dataParent.propertyData |= {a_uuid: data}
+        self.dataParent.UpdateDataCount()
 
         self.UpdateText()
 
     @pyqtSlot(int, int, int, int)
     def UpdateDashboardGoal(self, appraisalGoal, listingGoal, saleGoal, incomeGoal):
-        self.appraisalGoal = appraisalGoal
-        self.listingGoal = listingGoal
-        self.saleGoal = saleGoal
-        self.incomeGoal = incomeGoal
+        self.dataParent.appraisalGoal = appraisalGoal
+        self.dataParent.listingGoal = listingGoal
+        self.dataParent.saleGoal = saleGoal
+        self.dataParent.incomeGoal = incomeGoal
         
         self.UpdateText()
 
     @pyqtSlot(Tally)
     def UpdateTally(self, tally):
-        self.callSessions += 1
+        self.dataParent.callSessions += 1
         if isinstance(tally, Tally):
-            self.calls += tally.calls
-            self.connects += tally.connects
-            self.appointments += tally.BAP + tally.MAP + tally.LAP
+            self.dataParent.calls += tally.calls
+            self.dataParent.connects += tally.connects
+            self.dataParent.appointments += tally.BAP + tally.MAP + tally.LAP
 
         self.UpdateText()
 
     def UpdateText(self):
-        self.appraisals = len(self.parent().parent().appraisalData)
-        self.listings = len(self.parent().parent().listingData)
-        self.sales = len(self.parent().parent().saleData)
-        self.income = 0
-        for data in self.parent().parent().saleData:
-            self.income += self.parent().parent().saleData[data]['price'] * self.parent().parent().saleData[data]['commission'] / 100
+        self.nAppraisals.setText(f"{self.dataParent.appraisals} \n/ {self.dataParent.appraisalGoal}")
+        self.nListings.setText(f"{self.dataParent.listings} \n/ {self.dataParent.listingGoal}")
+        self.nSales.setText(f"{self.dataParent.sales} \n/ {self.dataParent.saleGoal}")
+        self.nIncome.setText("$ " + f"{self.dataParent.income:,.0f} \n/ {self.dataParent.incomeGoal:,.0f}")
 
-        self.nAppraisals.setText(str(self.appraisals) + "\n/ " + str(self.appraisalGoal))
-        self.nListings.setText(str(self.listings) + "\n/ " + str(self.listingGoal))
-        self.nSales.setText(str(self.sales) + "\n/ " + str(self.saleGoal))
-        self.nIncome.setText("$ " + f"{int(self.income):,}" + "\n/ " + f"{int(self.incomeGoal):,}")
-
-        self.nCallSessions.setText(str(self.callSessions))
-        self.nCalls.setText(str(self.calls))
-        self.nConnects.setText(str(self.connects))
-        if self.calls != 0:
-            self.connectsRatio = self.connects / self.calls
-        self.nConnectsRatio.setText(f"{self.connectsRatio:.2f}")
-        self.nAppointments.setText(str(self.appointments))
+        self.nCallSessions.setText(f"{self.dataParent.callSessions}")
+        self.nCalls.setText(f"{self.dataParent.calls}")
+        self.nConnects.setText(f"{self.dataParent.connects}")
+        connectsRatio = 0
+        if self.dataParent.calls != 0:
+            connectsRatio = self.dataParent.connects / self.dataParent.calls
+        self.nConnectsRatio.setText(f"{connectsRatio:.2f}")
+        self.nAppointments.setText(f"{self.dataParent.appointments}")
 
         # Set text colours
-        if self.appraisals >= self.appraisalGoal:
+        if self.dataParent.appraisals >= self.dataParent.appraisalGoal:
             self.nAppraisals.setStyleSheet("color: #0fd444; font-size: 26px;")
         else:
             self.nAppraisals.setStyleSheet("font-size: 26px;")
-        if self.listings >= self.listingGoal:
+        if self.dataParent.listings >= self.dataParent.listingGoal:
             self.nListings.setStyleSheet("color: #0fd444; font-size: 26px;")
         else:
             self.nListings.setStyleSheet("font-size: 26px;")
-        if self.sales >= self.saleGoal:
+        if self.dataParent.sales >= self.dataParent.saleGoal:
             self.nSales.setStyleSheet("color: #0fd444; font-size: 26px;")
         else:
             self.nSales.setStyleSheet("font-size: 26px;")
-        if self.income >= self.incomeGoal:
+        if self.dataParent.income >= self.dataParent.incomeGoal:
             self.nIncome.setStyleSheet("color: #0fd444; font-size: 26px;")
         else:
             self.nIncome.setStyleSheet("font-size: 26px;")
@@ -334,8 +263,5 @@ class DashboardWidget(QWidget):
         # self.addview.exec()
 
     def SetGoals(self):
-        self.goaldialog = DashboardSetGoal(self.appraisalGoal, self.listingGoal, self.saleGoal, self.incomeGoal, parent=self.parent().parent())
+        self.goaldialog = DashboardSetGoal(self.dataParent.appraisalGoal, self.dataParent.listingGoal, self.dataParent.saleGoal, self.dataParent.incomeGoal, parent=self.parent().parent())
         self.goaldialog.okPressed.connect(self.UpdateDashboardGoal)
-    
-    def closeEvent(self, _):
-        self.SaveData()

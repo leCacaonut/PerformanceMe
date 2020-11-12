@@ -1,8 +1,6 @@
-"""
-Dashboard window
-"""
+"""Dashboard window"""
 
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QDateEdit, QLabel, QSizePolicy, QSpinBox, QLineEdit, QDoubleSpinBox, QMessageBox, QDialogButtonBox, QApplication
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QDateEdit, QLabel, QSizePolicy, QSpinBox, QLineEdit, QDoubleSpinBox, QMessageBox, QDialogButtonBox
 from PyQt5.QtCore import Qt, QDate, QPoint, pyqtSignal, QSize, QMargins
 
 from constants import ActionType, motivational_string
@@ -18,9 +16,10 @@ class DashboardAdd(QDialog):
         self.setContentsMargins(QMargins(3, 3, 3, 3))
         self.setStyleSheet("font-size: 20px")
 
+        self.dataParent = parent
         self.actionType = actionType
 
-        self.layout = QVBoxLayout()
+        self.layout = QVBoxLayout(self)
         self.buttonLayout = QHBoxLayout()
 
         self.titleDescription = QLabel(self)
@@ -33,14 +32,10 @@ class DashboardAdd(QDialog):
         self.dialogButtons.accepted.connect(self.SendDataToDashboard)
         # self.dialogButtons.rejected.connect(self.reject)
         self.dialogButtons.rejected.connect(self.close)
-        
-
 
         # Widget settings
         self.addressLabel.setAlignment(Qt.AlignBottom)
-        self.addressLabel.setSizePolicy(QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding))
         self.dateLabel.setAlignment(Qt.AlignBottom)
-        self.dateLabel.setSizePolicy(QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding))
 
         # Set widget layouts
         self.layout.addWidget(self.titleDescription)
@@ -49,12 +44,12 @@ class DashboardAdd(QDialog):
         self.layout.addWidget(self.dateLabel)
         self.layout.addWidget(self.dateInput)
 
-        # If this is sale window
-        if self.actionType == ActionType.appraisal:
+        # Change text based on action type
+        if self.actionType is ActionType.appraisal:
             self.titleDescription.setText("<u><b>Add appraisal</b></u>")
-        if self.actionType == ActionType.listing:
+        if self.actionType is ActionType.listing:
             self.titleDescription.setText("<u><b>Add listing</b></u>")
-        if self.actionType == ActionType.sale:
+        if self.actionType is ActionType.sale:
             self.titleDescription.setText("<u><b>Add sale</b></u>")
             self.priceLabel = QLabel("Enter price:", self)
             self.priceInput = QSpinBox(self)
@@ -63,12 +58,10 @@ class DashboardAdd(QDialog):
 
             # Widget setup
             self.priceLabel.setAlignment(Qt.AlignBottom)
-            self.priceLabel.setSizePolicy(QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding))
             self.priceInput.setMaximum(100000000)
             self.priceInput.setSingleStep(1000)
             self.priceInput.setValue(1500000)
             self.commissionLabel.setAlignment(Qt.AlignBottom)
-            self.commissionLabel.setSizePolicy(QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding))
             self.commissionInput.setMaximum(100)
             self.commissionInput.setSingleStep(0.05)
             self.commissionInput.setValue(2.0)
@@ -92,19 +85,29 @@ class DashboardAdd(QDialog):
         
 
     def SendDataToDashboard(self):
+        for data in self.dataParent.propertyData:
+            if (self.actionType is ActionType.appraisal and 'appraisal_date' in self.dataParent.propertyData[data] or \
+            self.actionType is ActionType.listing and 'listing_date' in self.dataParent.propertyData[data] or \
+            self.actionType is ActionType.sale and 'sale_date' in self.dataParent.propertyData[data]) and \
+            self.addressInput.text() in self.dataParent.propertyData[data].values():
+                errormsg = QMessageBox(QMessageBox.Critical, "ERROR", "Address already exists!", QMessageBox.Ok, self)
+                errormsg.setWindowFlag(Qt.FramelessWindowHint)
+                errormsg.show()
+                return
+
         if not self.addressInput.text():
             errormsg = QMessageBox(QMessageBox.Critical, "ERROR", "Address cannot be empty!", QMessageBox.Ok, self)
             errormsg.setWindowFlag(Qt.FramelessWindowHint)
             errormsg.show()
             
         else:
-            if self.actionType == ActionType.appraisal or self.actionType == ActionType.listing:
+            if self.actionType is ActionType.appraisal or self.actionType is ActionType.listing:
                 self.okPressed[ActionType, str, QDate].emit(
                     self.actionType,
                     self.addressInput.text(),
                     self.dateInput.date()
                 )
-            elif self.actionType == ActionType.sale:
+            elif self.actionType is ActionType.sale:
                 self.okPressed[ActionType, str, QDate, int, float].emit(
                     self.actionType,
                     self.addressInput.text(),
@@ -161,13 +164,13 @@ class DashboardSetGoal(QDialog):
 
         # Configuration
         self.setAppraisal.setValue(appraisalGoal)
-        self.setAppraisal.setMaximum(99)
+        self.setAppraisal.setMaximum(999)
         self.setAppraisal.setMinimumSize(QSize(50, 30))
         self.setListing.setValue(listingGoal)
-        self.setListing.setMaximum(99)
+        self.setListing.setMaximum(999)
         self.setListing.setMinimumSize(QSize(50, 30))
         self.setSale.setValue(saleGoal)
-        self.setSale.setMaximum(99)
+        self.setSale.setMaximum(999)
         self.setSale.setMinimumSize(QSize(50, 30))
         self.setIncome.setSingleStep(1000)
         self.setIncome.setMaximum(100000000)
