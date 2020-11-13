@@ -84,9 +84,10 @@ class MainWindow(QMainWindow):
             "a", "l", "s", "g",
             # Timer
             "s", " ", "1", "2", "3", "4", "5", "shift+1", "shift+2", "shift+3", "shift+4", "shift+5",
-            # Details None
-            ",", "."
-            # Settings None
+            # Details
+            ",", ".",
+            # Settings
+            "l", "d", "ctrl+n"
         ]
         
         commandList = [
@@ -110,8 +111,11 @@ class MainWindow(QMainWindow):
             lambda: self.tabWidget.timerWidget.PushButton(TimerPushButtons.LAP_minus),
             # Details None
             self.tabWidget.detailsWidget.ChangeSortType,
-            self.tabWidget.detailsWidget.ChangeSortOrder
-            # Settings None
+            self.tabWidget.detailsWidget.ChangeSortOrder,
+            # Settings
+            self.tabWidget.settingsWidget.SetLightStyleSheet,
+            self.tabWidget.settingsWidget.SetDarkStyleSheet,
+            self.tabWidget.settingsWidget.CreateNewSession
         ]
 
         for i, shortcuts in enumerate(keyList):
@@ -133,7 +137,7 @@ class MainWindow(QMainWindow):
             for shortcut in self.shortcutList[4:16]:
                 shortcut.setEnabled(True)
         elif self.tabWidget.tabs.tabText(tabIndex) == "Details":
-            for shortcut in self.shortcutList[:16]:
+            for shortcut in self.shortcutList:
                 shortcut.setEnabled(False)
             for shortcut in self.shortcutList[16:18]:
                 shortcut.setEnabled(True)
@@ -141,14 +145,10 @@ class MainWindow(QMainWindow):
             self.tabWidget.detailsWidget.UpdateList()
 
         elif self.tabWidget.tabs.tabText(tabIndex) == "Settings":
-            for shortcut in self.shortcutList:
+            for shortcut in self.shortcutList[:18]:
                 shortcut.setEnabled(False)
-
-        # Templates
-        # if self.tabWidget.tabs.tabText(tabIndex) == "Dashboard":
-        # if self.tabWidget.tabs.tabText(tabIndex) == "Timer":
-        # if self.tabWidget.tabs.tabText(tabIndex) == "Details":
-        # if self.tabWidget.tabs.tabText(tabIndex) == "Settings":
+            for shortcut in self.shortcutList[18:21]:
+                shortcut.setEnabled(True)
 
     def initTheme(self):
         sApp = QApplication.instance()

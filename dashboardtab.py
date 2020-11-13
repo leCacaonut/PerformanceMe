@@ -1,11 +1,9 @@
 """Dashboard tab"""
 
-import os
-import json
 import uuid
 
 from PyQt5.QtWidgets import QWidget, QGridLayout, QVBoxLayout, QToolButton, QLabel, QSizePolicy, QFrame
-from PyQt5.QtCore import pyqtSlot, QSize, Qt, QStandardPaths, QDate
+from PyQt5.QtCore import pyqtSlot, QSize, Qt, QDate, QVariant
 from PyQt5.QtGui import QIcon
 
 from constants import default_icon_size, uuid_namespace, Tally, Images, ActionType
@@ -26,8 +24,6 @@ class DashboardWidget(QWidget):
         self.layoutBase = QVBoxLayout(self)
         self.layoutTop = QGridLayout()
         self.layoutBottom = QGridLayout()
-
-        # self.LoadData()
 
         # Create widgets
         # First section
@@ -177,18 +173,18 @@ class DashboardWidget(QWidget):
         self.layoutBase.setStretch(1, 0)
         self.layoutBase.setStretch(2, 3)
         
-    @pyqtSlot(ActionType, str, QDate)
-    @pyqtSlot(ActionType, str, QDate, int, float)
-    def UpdateDashboard(self, actionType, address, date, price=0, commission=0):
+    @pyqtSlot(ActionType, QVariant, str, str, str, str, QDate)
+    @pyqtSlot(ActionType, QVariant, str, str, str, str, QDate, int, float)
+    def UpdateDashboard(self, actionType, a_uuid, suburb, postcode, street, number, date, price=0, commission=0):
         #pylint: disable=too-many-arguments
         date = date.toString('yyyy/MM/dd')
-        a_uuid = f"{uuid.uuid5(uuid_namespace, address)}"
-        # If uuid already exists in the list, use it
-        if a_uuid in self.dataParent.propertyData:
-            data = self.dataParent.propertyData[a_uuid]
-        # Otherwise, create a new address
+        # If uuid doesn't exist, create a new uuid
+        if a_uuid is None:
+            a_uuid = f"{uuid.uuid4()}"
+            # Create an address field
+            data = {'address': {'suburb': suburb, 'postcode': postcode, 'street': street, 'number': number}}
         else:
-            data = {'address': address}
+            data = self.dataParent.propertyData[a_uuid]
 
         if actionType is ActionType.appraisal:
             data |= {'appraisal_date': date}
@@ -256,8 +252,8 @@ class DashboardWidget(QWidget):
 
     def AddAction(self, actionType):
         self.addview = DashboardAdd(parent=self.parent().parent(), actionType=actionType)
-        self.addview.okPressed[ActionType, str, QDate].connect(self.UpdateDashboard)
-        self.addview.okPressed[ActionType, str, QDate, int, float].connect(self.UpdateDashboard)
+        self.addview.okPressed[ActionType, QVariant, str, str, str, str, QDate].connect(self.UpdateDashboard)
+        self.addview.okPressed[ActionType, QVariant, str, str, str, str, QDate, int, float].connect(self.UpdateDashboard)
         self.addview.show()
         # Don't need to exec()
         # self.addview.exec()

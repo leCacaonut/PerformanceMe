@@ -1,37 +1,46 @@
 """Detail editing"""
 
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QDateEdit, QLabel, QSizePolicy, QSpinBox, QLineEdit, QDoubleSpinBox, QMessageBox, QDialogButtonBox
-from PyQt5.QtCore import Qt, QDate, QPoint, pyqtSignal, QSize, QMargins
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QDateEdit, QLabel, QSpinBox, QLineEdit, QDoubleSpinBox, QDialogButtonBox
+from PyQt5.QtCore import Qt, QDate, QPoint, pyqtSignal, QMargins, QVariant
+from PyQt5.QtGui import QIcon
 
-from constants import ActionType, motivational_string
+from constants import ActionType
 
 class DetailEdit(QDialog):
-    okPressed = pyqtSignal([ActionType, str, QDate], [ActionType, str, QDate, int, float])
+    okPressed = pyqtSignal(
+        [ActionType, QVariant, dict, QDate],
+        [ActionType, QVariant, dict, QDate, int, float]
+    )
     
-    def __init__(self, actionType, address, date, price=1500000, commission=2, parent=None):
+    def __init__(self, actionType, a_uuid, address, date, price=1500000, commission=2, parent=None):
         super().__init__()
 
         self.setWindowTitle("Edit details")
-        self.setWindowFlag(Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setWindowModality(Qt.ApplicationModal)
+        self.setWindowIcon(QIcon('images/hamburger.png'))
         self.setContentsMargins(QMargins(3, 3, 3, 3))
         self.setStyleSheet("font-size: 20px")
 
         self.dataParent = parent
         self.actionType = actionType
+        self.a_uuid = a_uuid
         self.address = address
 
         self.layout = QVBoxLayout(self)
-        self.buttonLayout = QHBoxLayout()
+        self.addressLayout = QHBoxLayout()
 
         self.titleDescription = QLabel(self)
         self.addressLabel = QLabel("Address:", self)
-        self.addressInput = QLineEdit(self)
+        self.addressInputSuburb = QLineEdit(address['suburb'], self)
+        self.addressInputPostcode = QLineEdit(address['postcode'], self)
+        self.addressInputStreet = QLineEdit(address['street'], self)
+        self.addressInputNumber = QLineEdit(address['number'], self)
         self.dateLabel = QLabel("Enter date:", self)
         self.dateInput = QDateEdit(date, self)
 
-        self.addressInput.setText(self.address)
-        self.addressInput.setReadOnly(True)
+        # self.addressInput.setText(self.address)
+        # self.addressInput.setReadOnly(True)
 
         self.dialogButtons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.dialogButtons.accepted.connect(self.UpdateItem)
@@ -45,9 +54,16 @@ class DetailEdit(QDialog):
         # Set widget layouts
         self.layout.addWidget(self.titleDescription)
         self.layout.addWidget(self.addressLabel)
-        self.layout.addWidget(self.addressInput)
+        self.addressLayout.addWidget(self.addressInputSuburb)
+        self.addressLayout.addWidget(self.addressInputPostcode)
+        self.layout.addLayout(self.addressLayout)
+        self.layout.addWidget(self.addressInputStreet)
+        self.layout.addWidget(self.addressInputNumber)
         self.layout.addWidget(self.dateLabel)
         self.layout.addWidget(self.dateInput)
+
+        self.addressLayout.setStretch(0, 2)
+        self.addressLayout.setStretch(1, 1)
         
         if self.actionType is ActionType.appraisal:
             self.titleDescription.setText("<u><b>Edit appraisal</b></u>")
@@ -77,7 +93,6 @@ class DetailEdit(QDialog):
             self.layout.addWidget(self.commissionInput)
 
         self.layout.addWidget(self.dialogButtons)
-        self.layout.addLayout(self.buttonLayout)
 
         self.setLayout(self.layout)
         
@@ -88,16 +103,24 @@ class DetailEdit(QDialog):
         self.oldPos = self.pos()
 
     def UpdateItem(self):
+        address = {'address': {
+            'suburb': " ".join(self.addressInputSuburb.text().split()),
+            'postcode': "".join(self.addressInputPostcode.text().split()),
+            'street': " ".join(self.addressInputStreet.text().split()),
+            'number': "".join(self.addressInputNumber.text().split())
+        }}
         if self.actionType is ActionType.appraisal or self.actionType is ActionType.listing:
-            self.okPressed[ActionType, str, QDate].emit(
+            self.okPressed[ActionType, QVariant, dict, QDate].emit(
                 self.actionType,
-                self.address,
+                self.a_uuid,
+                address,
                 self.dateInput.date()
             )
         elif self.actionType is ActionType.sale:
-            self.okPressed[ActionType, str, QDate, int, float].emit(
+            self.okPressed[ActionType, QVariant, dict, QDate, int, float].emit(
                 self.actionType,
-                self.address,
+                self.a_uuid,
+                address,
                 self.dateInput.date(),
                 self.priceInput.value(),
                 self.commissionInput.value()
@@ -114,32 +137,40 @@ class DetailEdit(QDialog):
         self.oldPos = event.globalPos()
         
 class DetailConvert(QDialog):
-    okPressed = pyqtSignal([ActionType, str, QDate], [ActionType, str, QDate, int, float])
+    okPressed = pyqtSignal(
+        [ActionType, QVariant, QDate],
+        [ActionType, QVariant, QDate, int, float]
+    )
     
-    def __init__(self, actionType, address, date, price=1500000, commission=2, parent=None):
+    def __init__(self, actionType, a_uuid, address, date, price=1500000, commission=2, parent=None):
         super().__init__()
 
         self.setWindowTitle("Convert details")
-        self.setWindowFlag(Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setWindowModality(Qt.ApplicationModal)
+        self.setWindowIcon(QIcon('images/hamburger.png'))
         self.setContentsMargins(QMargins(3, 3, 3, 3))
         self.setStyleSheet("font-size: 20px")
 
         self.dataParent = parent
         self.actionType = actionType
+        self.a_uuid = a_uuid
         self.address = address
 
         self.layout = QVBoxLayout(self)
-        self.buttonLayout = QHBoxLayout()
+        self.addressLayout = QHBoxLayout()
 
         self.titleDescription = QLabel(self)
         self.addressLabel = QLabel("Address:", self)
-        self.addressInput = QLineEdit(self)
+        self.addressInputSuburb = QLineEdit(address['suburb'], self)
+        self.addressInputPostcode = QLineEdit(address['postcode'], self)
+        self.addressInputStreet = QLineEdit(address['street'], self)
+        self.addressInputNumber = QLineEdit(address['number'], self)
         self.dateLabel = QLabel("Enter date:", self)
         self.dateInput = QDateEdit(date, self)
 
-        self.addressInput.setText(self.address)
-        self.addressInput.setReadOnly(True)
+        # self.addressInput.setText(self.address)
+        # self.addressInput.setReadOnly(True)
 
         self.dialogButtons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.dialogButtons.accepted.connect(self.UpdateItem)
@@ -149,13 +180,24 @@ class DetailConvert(QDialog):
         # Widget settings
         self.addressLabel.setAlignment(Qt.AlignBottom)
         self.dateLabel.setAlignment(Qt.AlignBottom)
+        self.addressInputSuburb.setReadOnly(True) 
+        self.addressInputPostcode.setReadOnly(True)
+        self.addressInputStreet.setReadOnly(True)
+        self.addressInputNumber.setReadOnly(True)
 
         # Set widget layouts
         self.layout.addWidget(self.titleDescription)
         self.layout.addWidget(self.addressLabel)
-        self.layout.addWidget(self.addressInput)
+        self.addressLayout.addWidget(self.addressInputSuburb)
+        self.addressLayout.addWidget(self.addressInputPostcode)
+        self.layout.addLayout(self.addressLayout)
+        self.layout.addWidget(self.addressInputStreet)
+        self.layout.addWidget(self.addressInputNumber)
         self.layout.addWidget(self.dateLabel)
         self.layout.addWidget(self.dateInput)
+
+        self.addressLayout.setStretch(0, 2)
+        self.addressLayout.setStretch(1, 1)
 
         if self.actionType is ActionType.appraisal:
             self.titleDescription.setText("<u><b>Convert to listing</b></u>")
@@ -184,7 +226,6 @@ class DetailConvert(QDialog):
             self.layout.addWidget(self.commissionInput)
 
         self.layout.addWidget(self.dialogButtons)
-        self.layout.addLayout(self.buttonLayout)
 
         self.setLayout(self.layout)
 
@@ -196,15 +237,15 @@ class DetailConvert(QDialog):
 
     def UpdateItem(self):
         if self.actionType is ActionType.appraisal:
-            self.okPressed[ActionType, str, QDate].emit(
+            self.okPressed[ActionType, QVariant, QDate].emit(
                 self.actionType,
-                self.address,
+                self.a_uuid,
                 self.dateInput.date()
             )
         elif self.actionType is ActionType.listing:
-            self.okPressed[ActionType, str, QDate, int, float].emit(
+            self.okPressed[ActionType, QVariant, QDate, int, float].emit(
                 self.actionType,
-                self.address,
+                self.a_uuid,
                 self.dateInput.date(),
                 self.priceInput.value(),
                 self.commissionInput.value()

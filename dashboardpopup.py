@@ -1,18 +1,23 @@
 """Dashboard window"""
 
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QDateEdit, QLabel, QSizePolicy, QSpinBox, QLineEdit, QDoubleSpinBox, QMessageBox, QDialogButtonBox
-from PyQt5.QtCore import Qt, QDate, QPoint, pyqtSignal, QSize, QMargins
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QDateEdit, QLabel, QSpinBox, QLineEdit, QDoubleSpinBox, QMessageBox, QDialogButtonBox
+from PyQt5.QtCore import Qt, QDate, QPoint, pyqtSignal, QSize, QMargins, QVariant
+from PyQt5.QtGui import QIcon
 
 from constants import ActionType, motivational_string
 
 class DashboardAdd(QDialog):
-    okPressed = pyqtSignal([ActionType, str, QDate], [ActionType, str, QDate, int, float])
+    okPressed = pyqtSignal(
+        [ActionType, QVariant, str, str, str, str, QDate],
+        [ActionType, QVariant, str, str, str, str, QDate, int, float]
+    )
 
     def __init__(self, parent=None, actionType=ActionType.appraisal):
         super().__init__()
         self.setWindowTitle("Enter details")
-        self.setWindowFlag(Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setWindowModality(Qt.ApplicationModal)
+        self.setWindowIcon(QIcon('images/plus.png'))
         self.setContentsMargins(QMargins(3, 3, 3, 3))
         self.setStyleSheet("font-size: 20px")
 
@@ -20,11 +25,14 @@ class DashboardAdd(QDialog):
         self.actionType = actionType
 
         self.layout = QVBoxLayout(self)
-        self.buttonLayout = QHBoxLayout()
+        self.addressLayout = QHBoxLayout()
 
         self.titleDescription = QLabel(self)
         self.addressLabel = QLabel("Enter address:", self)
-        self.addressInput = QLineEdit(self)
+        self.addressInputSuburb = QLineEdit("SUBURB", self)
+        self.addressInputPostcode = QLineEdit("P/CODE", self)
+        self.addressInputStreet = QLineEdit("STREET", self)
+        self.addressInputNumber = QLineEdit("NUMBER", self)
         self.dateLabel = QLabel("Enter date:", self)
         self.dateInput = QDateEdit(QDate.currentDate(), self)
 
@@ -40,9 +48,16 @@ class DashboardAdd(QDialog):
         # Set widget layouts
         self.layout.addWidget(self.titleDescription)
         self.layout.addWidget(self.addressLabel)
-        self.layout.addWidget(self.addressInput)
+        self.addressLayout.addWidget(self.addressInputSuburb)
+        self.addressLayout.addWidget(self.addressInputPostcode)
+        self.layout.addLayout(self.addressLayout)
+        self.layout.addWidget(self.addressInputStreet)
+        self.layout.addWidget(self.addressInputNumber)
         self.layout.addWidget(self.dateLabel)
         self.layout.addWidget(self.dateInput)
+
+        self.addressLayout.setStretch(0, 2)
+        self.addressLayout.setStretch(1, 1)
 
         # Change text based on action type
         if self.actionType is ActionType.appraisal:
@@ -73,7 +88,6 @@ class DashboardAdd(QDialog):
             self.layout.addWidget(self.commissionInput)
 
         self.layout.addWidget(self.dialogButtons)
-        self.layout.addLayout(self.buttonLayout)
 
         self.setLayout(self.layout)
         
@@ -85,32 +99,55 @@ class DashboardAdd(QDialog):
         
 
     def SendDataToDashboard(self):
+        a_uuid = None
         for data in self.dataParent.propertyData:
-            if (self.actionType is ActionType.appraisal and 'appraisal_date' in self.dataParent.propertyData[data] or \
-            self.actionType is ActionType.listing and 'listing_date' in self.dataParent.propertyData[data] or \
-            self.actionType is ActionType.sale and 'sale_date' in self.dataParent.propertyData[data]) and \
-            self.addressInput.text() in self.dataParent.propertyData[data].values():
-                errormsg = QMessageBox(QMessageBox.Critical, "ERROR", "Address already exists!", QMessageBox.Ok, self)
-                errormsg.setWindowFlag(Qt.FramelessWindowHint)
-                errormsg.show()
-                return
+            if (
+                " ".join(self.addressInputSuburb.text().split()) in self.dataParent.propertyData[data]['address'].values() and \
+                "".join(self.addressInputPostcode.text().split()) in self.dataParent.propertyData[data]['address'].values() and \
+                " ".join(self.addressInputStreet.text().split()) in self.dataParent.propertyData[data]['address'].values() and \
+                "".join(self.addressInputNumber.text().split()) in self.dataParent.propertyData[data]['address'].values()
+            ):
+                if (
+                    self.actionType is ActionType.appraisal and 'appraisal_date' in self.dataParent.propertyData[data] or \
+                    self.actionType is ActionType.listing and 'listing_date' in self.dataParent.propertyData[data] or \
+                    self.actionType is ActionType.sale and 'sale_date' in self.dataParent.propertyData[data] \
+                ):
+                    errormsg = QMessageBox(QMessageBox.Critical, "ERROR", "Address already exists!", QMessageBox.Ok, self)
+                    errormsg.setWindowFlag(Qt.FramelessWindowHint)
+                    errormsg.show()
+                    return
+                else:
+                    a_uuid = data
+                
 
-        if not self.addressInput.text():
-            errormsg = QMessageBox(QMessageBox.Critical, "ERROR", "Address cannot be empty!", QMessageBox.Ok, self)
+        if (not self.addressInputSuburb.text() or
+            not self.addressInputPostcode.text() or
+            not self.addressInputStreet.text() or
+            not self.addressInputNumber.text()
+        ):
+            errormsg = QMessageBox(QMessageBox.Critical, "ERROR", "All forms must be filled!", QMessageBox.Ok, self)
             errormsg.setWindowFlag(Qt.FramelessWindowHint)
             errormsg.show()
             
         else:
             if self.actionType is ActionType.appraisal or self.actionType is ActionType.listing:
-                self.okPressed[ActionType, str, QDate].emit(
+                self.okPressed[ActionType, QVariant, str, str, str, str, QDate].emit(
                     self.actionType,
-                    self.addressInput.text(),
+                    a_uuid,
+                    " ".join(self.addressInputSuburb.text().split()),
+                    "".join(self.addressInputPostcode.text().split()),
+                    " ".join(self.addressInputStreet.text().split()),
+                    "".join(self.addressInputNumber.text().split()),
                     self.dateInput.date()
                 )
             elif self.actionType is ActionType.sale:
-                self.okPressed[ActionType, str, QDate, int, float].emit(
+                self.okPressed[ActionType, QVariant, str, str, str, str, QDate, int, float].emit(
                     self.actionType,
-                    self.addressInput.text(),
+                    a_uuid,
+                    " ".join(self.addressInputSuburb.text().split()),
+                    "".join(self.addressInputPostcode.text().split()),
+                    " ".join(self.addressInputStreet.text().split()),
+                    "".join(self.addressInputNumber.text().split()),
                     self.dateInput.date(),
                     self.priceInput.value(),
                     self.commissionInput.value()
@@ -141,8 +178,9 @@ class DashboardSetGoal(QDialog):
     def __init__(self, appraisalGoal, listingGoal, saleGoal, incomeGoal, parent=None):
         super().__init__()
         self.setWindowTitle("Set goals")
-        self.setWindowFlag(Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setWindowModality(Qt.ApplicationModal)
+        self.setWindowIcon(QIcon('images/hamburger.png'))
         self.setContentsMargins(QMargins(3, 3, 3, 3))
         self.setStyleSheet("font-size: 20px")
 

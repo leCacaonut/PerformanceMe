@@ -2,13 +2,15 @@
 
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QDialogButtonBox, QDoubleSpinBox, QApplication
 from PyQt5.QtCore import Qt, QMargins, QPoint
+from PyQt5.QtGui import QIcon
 
 class TimerDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__()
         self.setWindowTitle("Set timer")
-        self.setWindowFlag(Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setWindowModality(Qt.ApplicationModal)
+        self.setWindowIcon(QIcon('images/icon.png'))
         self.setContentsMargins(QMargins(3, 3, 3, 3))
         self.setStyleSheet("font-size: 20px")
 

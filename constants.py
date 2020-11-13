@@ -35,7 +35,9 @@ class ActionType(IntEnum):
 
 class SortType(IntEnum):
     date = auto()
-    name = auto()
+    suburb = auto()
+    street = auto()
+    number = auto()
 
 class TimerPushButtons(IntEnum):
     calls_minus = auto()
