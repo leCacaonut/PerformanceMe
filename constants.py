@@ -1,6 +1,5 @@
 """Constants"""
 
-import uuid
 
 from enum import Enum, IntEnum, auto
 from dataclasses import dataclass
@@ -10,7 +9,6 @@ default_icon_size = 75
 data_file_name = '/userdata'
 data_file_extension = '.json'
 settings_file_name = '/settings.perfme'
-uuid_namespace = uuid.UUID('77187714-5070-6165-3180-086183631538')
 
 class Name(str, Enum):
     organisation = "leCacaonut"

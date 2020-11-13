@@ -1,11 +1,9 @@
 """Details tab"""
 
-import uuid
-
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QMenu, QListWidgetItem, QPushButton
 from PyQt5.QtCore import Qt, QDate, pyqtSlot, QVariant
 
-from constants import uuid_namespace, ActionType, SortType
+from constants import ActionType, SortType
 
 from customsubclasses import CustomQListWidget
 from detailspopup import DetailEdit, DetailConvert

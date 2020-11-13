@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QWidget, QGridLayout, QVBoxLayout, QToolButton, QLab
 from PyQt5.QtCore import pyqtSlot, QSize, Qt, QDate, QVariant
 from PyQt5.QtGui import QIcon
 
-from constants import default_icon_size, uuid_namespace, Tally, Images, ActionType
+from constants import default_icon_size, Tally, Images, ActionType
 
 from customsubclasses import StretchedLabel, CustomToolButton
 from dashboardpopup import DashboardAdd, DashboardSetGoal
