@@ -91,6 +91,7 @@ class TimerWidget(QWidget):
         self.stopButton.setIcon(QIcon(Images.stop))
         self.stopButton.setIconSize(QSize(default_icon_size, default_icon_size))
         self.stopButton.clicked.connect(self.EndSession)
+        self.stopButton.setEnabled(False)
 
         self.startPauseButton.setIcon(QIcon(Images.play))
         self.startPauseButton.setIconSize(QSize(default_icon_size, default_icon_size))
@@ -235,6 +236,7 @@ class TimerWidget(QWidget):
     
     def PlayPause(self):
         if self.count != 0:
+            self.stopButton.setEnabled(True)
             if self.start:
                 self.start = False
                 self.startPauseButton.setIcon(QIcon(Images.play))
@@ -248,6 +250,7 @@ class TimerWidget(QWidget):
         self.start = False
         self.count = 0
         self.startPauseButton.setIcon(QIcon(Images.play))
+        self.stopButton.setEnabled(False)
         # Save the data to dashboard 
         self.saveData.emit(self.tally)
         self.timeLabel.setText("Session ended")
@@ -260,6 +263,7 @@ class TimerWidget(QWidget):
                 self.timeLabel.setText("Time's up!")
                 self.start = False
                 self.startPauseButton.setIcon(QIcon(Images.play))
+                self.stopButton.setEnabled(False)
 
                 self.saveData.emit(self.tally)
 
