@@ -50,9 +50,11 @@ class MainWindow(QMainWindow):
 
         self.initSettings()
         self.initShortcuts()
+        
+        # Create the save files first
+        self.LoadData()
         self.SetCurrentTabShortcuts(0)
 
-        self.LoadData()
         # Get dashboard to update after loading data
         self.tabWidget.dashboardWidget.UpdateText()
 
