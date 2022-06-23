@@ -97,6 +97,7 @@ class SettingsWidget(QWidget):
             return
 
         # Will create file if not exist
+        self.parent().parent().ResetData()
         self.parent().parent().LoadData()
 
     def OpenSaveLocation(self):
