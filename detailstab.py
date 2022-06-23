@@ -119,14 +119,15 @@ class DetailsWidget(QWidget):
         self.UpdateList()
 
     def DeleteDetails(self, actionType, a_uuid):
+
         if actionType is ActionType.appraisal:
-            self.dataParent.propertyData[a_uuid].pop('appraisal_date', None)
+            self.dataParent.propertyData[a_uuid].pop('appraisal_date')
         elif actionType is ActionType.listing:
-            self.dataParent.propertyData[a_uuid].pop('listing_date', None)
+            self.dataParent.propertyData[a_uuid].pop('listing_date')
         elif actionType is ActionType.sale:
-            self.dataParent.propertyData[a_uuid].pop('sale_date', None)
-            self.dataParent.propertyData[a_uuid].pop('price', None)
-            self.dataParent.propertyData[a_uuid].pop('commission', None)
+            self.dataParent.propertyData[a_uuid].pop('sale_date')
+            self.dataParent.propertyData[a_uuid].pop('price')
+            self.dataParent.propertyData[a_uuid].pop('commission')
 
     @pyqtSlot(ActionType, QVariant, QDate)
     @pyqtSlot(ActionType, QVariant, QDate, int, float)
@@ -181,7 +182,7 @@ class DetailsWidget(QWidget):
                 # Get information about the item to be deleted
                 item = self.appraisalList.takeItem(self.appraisalList.currentRow())
                 # Delete entry from data dictionary
-                self.DeleteDetails(ActionType.appraisal, item.data(Qt.UserRole)['address'])
+                self.DeleteDetails(ActionType.appraisal, item.data(Qt.UserRole + 1))
 
             elif action.text() == "Convert to listing":
                 self.dialog = DetailConvert(
@@ -209,7 +210,7 @@ class DetailsWidget(QWidget):
                 # Get information about the item to be deleted
                 item = self.listingList.takeItem(self.listingList.currentRow())
                 # Delete entry from data dictionary
-                self.DeleteDetails(ActionType.listing, item.data(Qt.UserRole)['address'])
+                self.DeleteDetails(ActionType.listing, item.data(Qt.UserRole + 1))
 
             elif action.text() == "Convert to sale":
                 self.dialog = DetailConvert(
@@ -239,7 +240,7 @@ class DetailsWidget(QWidget):
                 # Get information about the item to be deleted
                 item = self.saleList.takeItem(self.saleList.currentRow())
                 # Delete entry from data dictionary
-                self.DeleteDetails(ActionType.sale, item.data(Qt.UserRole)['address'])
+                self.DeleteDetails(ActionType.sale, item.data(Qt.UserRole + 1))
 
     def ChangeSortType(self):
         if self.sortType is SortType.date:

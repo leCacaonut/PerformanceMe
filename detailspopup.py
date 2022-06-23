@@ -98,7 +98,7 @@ class DetailEdit(QDialog):
         
         # Move window calculations correctly
         self.show()
-        self.move(parent.frameGeometry().center().x() - self.frameGeometry().width() / 2, parent.frameGeometry().center().y() - self.frameGeometry().height() / 2)
+        self.move(int(parent.frameGeometry().center().x() - self.frameGeometry().width() / 2), int(parent.frameGeometry().center().y() - self.frameGeometry().height() / 2))
         # Setup mouse event handling
         self.oldPos = self.pos()
 
@@ -231,7 +231,7 @@ class DetailConvert(QDialog):
 
         # Move window calculations correctly
         self.show()
-        self.move(parent.frameGeometry().center().x() - self.frameGeometry().width() / 2, parent.frameGeometry().center().y() - self.frameGeometry().height() / 2)
+        self.move(int(parent.frameGeometry().center().x() - self.frameGeometry().width() / 2), int(parent.frameGeometry().center().y() - self.frameGeometry().height() / 2))
         # Setup mouse event handling
         self.oldPos = self.pos()
 

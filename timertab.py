@@ -16,7 +16,7 @@ from timerpopup import TimerDialog
 
 class TimerWidget(QWidget):
     # pylint: disable=too-many-instance-attributes
-    timerExpired = pyqtSignal(Tally)
+    saveData = pyqtSignal(Tally)
 
     # Variables
     count = 60 * 45 # 45 minutes
@@ -26,7 +26,7 @@ class TimerWidget(QWidget):
 
     def __init__(self, parent):
         super().__init__(parent)
-        # self.timerExpired.connect()
+        # self.saveData.connect()
 
         # Define a layout to use
         self.layout = QGridLayout(self)
@@ -35,7 +35,8 @@ class TimerWidget(QWidget):
         self.timerInputDialog = None
         self.setTimerButton = QPushButton("Set timer", self)
         self.timeLabel = QLabel(f"{timedelta(seconds=self.count)}", self)
-        self.startStopButton = QToolButton(self)
+        self.stopButton = QToolButton(self)
+        self.startPauseButton = QToolButton(self)
 
         self.lkpi = StretchedLabel("KPI", self)
         self.ltally = StretchedLabel("Tally", self)
@@ -87,9 +88,13 @@ class TimerWidget(QWidget):
         
         self.timeLabel.setStyleSheet("font-size: 50px;")
 
-        self.startStopButton.setIcon(QIcon(Images.play))
-        self.startStopButton.setIconSize(QSize(default_icon_size, default_icon_size))
-        self.startStopButton.clicked.connect(self.PlayPause)
+        self.stopButton.setIcon(QIcon(Images.stop))
+        self.stopButton.setIconSize(QSize(default_icon_size, default_icon_size))
+        self.stopButton.clicked.connect(self.EndSession)
+
+        self.startPauseButton.setIcon(QIcon(Images.play))
+        self.startPauseButton.setIconSize(QSize(default_icon_size, default_icon_size))
+        self.startPauseButton.clicked.connect(self.PlayPause)
 
         self.lkpi.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.ltally.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -136,7 +141,8 @@ class TimerWidget(QWidget):
         # Add widgets
         self.layout.addWidget(self.setTimerButton, 0, 0, 1, 4)
         self.layout.addWidget(self.timeLabel, 1, 0, 1, 3)
-        self.layout.addWidget(self.startStopButton, 1, 3)
+        self.layout.addWidget(self.stopButton, 1, 2)
+        self.layout.addWidget(self.startPauseButton, 1, 3)
 
         self.layout.addWidget(self.lkpi, 3, 0)
         self.layout.addWidget(self.ltally, 3, 1)
@@ -231,12 +237,20 @@ class TimerWidget(QWidget):
         if self.count != 0:
             if self.start:
                 self.start = False
-                self.startStopButton.setIcon(QIcon(Images.play))
+                self.startPauseButton.setIcon(QIcon(Images.play))
             else:
                 self.start = True
-                self.startStopButton.setIcon(QIcon(Images.pause))
+                self.startPauseButton.setIcon(QIcon(Images.pause))
         else:
             self.SetTimerDialog()
+
+    def EndSession(self):
+        self.start = False
+        self.count = 0
+        self.startPauseButton.setIcon(QIcon(Images.play))
+        # Save the data to dashboard 
+        self.saveData.emit(self.tally)
+        self.timeLabel.setText("Session ended")
 
     def UpdateTime(self):
         if self.start:
@@ -245,9 +259,9 @@ class TimerWidget(QWidget):
             if self.count == 0:
                 self.timeLabel.setText("Time's up!")
                 self.start = False
-                self.startStopButton.setIcon(QIcon(Images.play))
+                self.startPauseButton.setIcon(QIcon(Images.play))
 
-                self.timerExpired.emit(self.tally)
+                self.saveData.emit(self.tally)
 
             else:
                 self.timeLabel.setText(f"{timedelta(seconds=self.count)}")
@@ -255,7 +269,7 @@ class TimerWidget(QWidget):
 
     def SetTimerDialog(self):
         self.start = False
-        self.startStopButton.setIcon(QIcon(Images.play))
+        self.startPauseButton.setIcon(QIcon(Images.play))
 
         self.timerInputDialog = TimerDialog(self.parent().parent())
         if self.timerInputDialog.exec():

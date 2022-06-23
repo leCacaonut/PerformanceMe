@@ -20,6 +20,7 @@ class Stylesheets(str, Enum):
 
 class Images(str, Enum):
     play = 'images/play.png'
+    stop = 'images/stop.png'
     pause = 'images/pause.png'
     plus = 'images/plus.png'
     minus = 'images/minus.png'
@@ -65,17 +66,23 @@ motivational_string = """
 """
 shortcut_help = """
 Hotkeys
+        ctrl + s:\tsave
     Dashboard:
-        a:      add appraisal
-        l:      add listing
-        s:      add sale
-        g:      set goals
+        a:\t\tadd appraisal
+        l:\t\tadd listing
+        s:\t\tadd sale
+        g:\t\tset goals
     Timer:
-        s:          set timer
-        spacebar:   start/pause timer
-        1-5:        add tally
-        shift 1-5:  remove tally
+        s:\t\tset timer
+        spacebar:\tstart/pause timer
+        1-5:\tadd tally
+        shift 1-5:\tremove tally
     Details:
-        comma:      sorting method
-        period:     sort ascending/descending
+        comma:\tsorting method
+        period:\tsort ascending/descending
+    Settings:
+        l:\t\tlight mode
+        d:\t\tdark mode
+        ctrl + n:\tnew session
+        ctrl + o:\topen save directory
 """

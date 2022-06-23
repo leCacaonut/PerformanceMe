@@ -68,11 +68,17 @@ class MainWindow(QMainWindow):
         self.tabWidget.settingsWidget.stayOnTopSignal.connect(self.ToggleWindowStayOnTop)
 
     def initShortcuts(self):
-        # Global tab switching
+        # Global keys
+        # Tab switching
         self.tabSwitchList = []
         for i in range(4):
             self.tabSwitchList.append(QShortcut(f"ctrl+{i + 1}", self))
             self.tabSwitchList[i].activated.connect(lambda x=i: self.tabWidget.tabs.setCurrentIndex(x))
+        # Hotkeys
+        # self.hotkeyList = []
+        # self.hotkeyList.append(QShortcut(f"ctrl+s", self))
+        # self.hotkeyList[0].activated.connect(self.SaveData)
+        QShortcut(f"ctrl+s", self).activated.connect(self.SaveData)
 
         # Enable/disable shortcuts on tab change    
         self.tabWidget.tabs.currentChanged.connect(self.SetCurrentTabShortcuts)
@@ -87,7 +93,7 @@ class MainWindow(QMainWindow):
             # Details
             ",", ".",
             # Settings
-            "l", "d", "ctrl+n"
+            "l", "d", "ctrl+n", "ctrl+o"
         ]
         
         commandList = [
@@ -115,7 +121,8 @@ class MainWindow(QMainWindow):
             # Settings
             self.tabWidget.settingsWidget.SetLightStyleSheet,
             self.tabWidget.settingsWidget.SetDarkStyleSheet,
-            self.tabWidget.settingsWidget.CreateNewSession
+            self.tabWidget.settingsWidget.CreateNewSession,
+            self.tabWidget.settingsWidget.OpenSaveLocation
         ]
 
         for i, shortcuts in enumerate(keyList):
@@ -143,12 +150,13 @@ class MainWindow(QMainWindow):
                 shortcut.setEnabled(True)
             # Conveniently put this here
             self.tabWidget.detailsWidget.UpdateList()
-
         elif self.tabWidget.tabs.tabText(tabIndex) == "Settings":
             for shortcut in self.shortcutList[:18]:
                 shortcut.setEnabled(False)
-            for shortcut in self.shortcutList[18:21]:
+            for shortcut in self.shortcutList[18:22]:
                 shortcut.setEnabled(True)
+        # Save data every time tab changes    
+        self.SaveData()
 
     def initTheme(self):
         sApp = QApplication.instance()
@@ -307,7 +315,7 @@ class TabWidget(QWidget):
         self.setLayout(self.layout)
 
         # Setup signals
-        self.timerWidget.timerExpired.connect(self.dashboardWidget.UpdateTally)
+        self.timerWidget.saveData.connect(self.dashboardWidget.UpdateTally)
 
 
     
