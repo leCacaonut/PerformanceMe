@@ -1,6 +1,6 @@
 """Details tab"""
 
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QMenu, QListWidgetItem, QPushButton
+from PyQt5.QtWidgets import QWidget, QGridLayout, QHBoxLayout, QLabel, QMenu, QListWidgetItem, QPushButton
 from PyQt5.QtCore import Qt, QDate, pyqtSlot, QVariant
 
 from constants import ActionType, SortType
@@ -18,7 +18,7 @@ class DetailsWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.dataParent = parent.parent()
-        self.layout = QVBoxLayout(self)
+        self.layout = QGridLayout(self)
 
         # Sorting options setup
         self.bLayout = QHBoxLayout()
@@ -35,10 +35,19 @@ class DetailsWidget(QWidget):
         # Label setup
         self.appraisal = QLabel("Appraisals")
         self.appraisal.setStyleSheet("font-size: 18px")
+        self.nappraisal = QLabel("0")
+        self.nappraisal.setStyleSheet("font-size: 14px")
+        self.nappraisal.setAlignment(Qt.AlignRight)
         self.listing = QLabel("Listings")
         self.listing.setStyleSheet("font-size: 18px")
+        self.nlisting = QLabel("0")
+        self.nlisting.setStyleSheet("font-size: 14px")
+        self.nlisting.setAlignment(Qt.AlignRight)
         self.sale = QLabel("Sales")
         self.sale.setStyleSheet("font-size: 18px")
+        self.nsale = QLabel("0")
+        self.nsale.setStyleSheet("font-size: 14px")
+        self.nsale.setAlignment(Qt.AlignRight)
 
         # List setup
         self.appraisalList = CustomQListWidget(self)
@@ -61,13 +70,16 @@ class DetailsWidget(QWidget):
         self.saleList.setContextMenuPolicy(Qt.CustomContextMenu)
         self.saleList.customContextMenuRequested.connect(lambda event, x=ActionType.sale: self.OpenContextMenu(event, x))
 
-        self.layout.addLayout(self.bLayout)
-        self.layout.addWidget(self.appraisal)
-        self.layout.addWidget(self.appraisalList)
-        self.layout.addWidget(self.listing)
-        self.layout.addWidget(self.listingList)
-        self.layout.addWidget(self.sale)
-        self.layout.addWidget(self.saleList)
+        self.layout.addLayout(self.bLayout, 1, 1, 1, 2)
+        self.layout.addWidget(self.appraisal, 2, 1)
+        self.layout.addWidget(self.nappraisal, 2, 2)
+        self.layout.addWidget(self.appraisalList, 3, 1, 1, 2)
+        self.layout.addWidget(self.listing, 4, 1)
+        self.layout.addWidget(self.nlisting, 4, 2)
+        self.layout.addWidget(self.listingList, 5, 1, 1, 2)
+        self.layout.addWidget(self.sale, 6, 1)
+        self.layout.addWidget(self.nsale, 6, 2)
+        self.layout.addWidget(self.saleList, 7, 1, 1, 2)
 
     def UpdateList(self):
         self.appraisalList.clear()

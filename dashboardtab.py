@@ -50,7 +50,7 @@ class DashboardWidget(QWidget):
         self.nConnects = StretchedLabel(self)
         self.lConnectsRatio = StretchedLabel("Connects Ratio", self)
         self.nConnectsRatio = StretchedLabel(self)
-        self.lAppointments = StretchedLabel("Appointments", self)
+        self.lAppointments = StretchedLabel("Appointments (B, M, L)", self)
         self.nAppointments = StretchedLabel(self)
         self.bQuit = QToolButton(self)
 
@@ -107,6 +107,7 @@ class DashboardWidget(QWidget):
         self.lConnectsRatio.setStyleSheet("font-size: 26px; font-weight: bold;")
         self.nConnectsRatio.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
         self.nConnectsRatio.setStyleSheet("font-size: 40px;")
+        self.lAppointments.setWordWrap(True)
         self.lAppointments.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         self.lAppointments.setStyleSheet("font-size: 26px; font-weight: bold;")
         self.nAppointments.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
@@ -213,6 +214,9 @@ class DashboardWidget(QWidget):
         if isinstance(tally, Tally):
             self.dataParent.calls += tally.calls
             self.dataParent.connects += tally.connects
+            self.dataParent.buyerApts += tally.BAP
+            self.dataParent.marketApts += tally.MAP
+            self.dataParent.listingApts += tally.LAP
             self.dataParent.appointments += tally.BAP + tally.MAP + tally.LAP
 
         self.UpdateText()
@@ -230,7 +234,7 @@ class DashboardWidget(QWidget):
         if self.dataParent.calls != 0:
             connectsRatio = self.dataParent.connects / self.dataParent.calls
         self.nConnectsRatio.setText(f"{connectsRatio:.2f}")
-        self.nAppointments.setText(f"{self.dataParent.appointments}")
+        self.nAppointments.setText(f"{self.dataParent.buyerApts}+{self.dataParent.marketApts}+{self.dataParent.listingApts}={self.dataParent.appointments}")
 
         # Set text colours
         if self.dataParent.appraisals >= self.dataParent.appraisalGoal:

@@ -35,6 +35,9 @@ class MainWindow(QMainWindow):
     calls = 0
     connects = 0
     appointments = 0
+    buyerApts = 0
+    marketApts = 0
+    listingApts = 0
     
     def __init__(self):
         super().__init__()
@@ -62,11 +65,13 @@ class MainWindow(QMainWindow):
         #pylint: disable=broad-except
         self.settings = QSettings((QStandardPaths.writableLocation(QStandardPaths.AppDataLocation)) + settings_file_name, QSettings.IniFormat)
         
+        # Using anonymous functions to run commands. Why? IDK
         for setting in [lambda x=self.settings.value('window_position', QPoint(0, 0)): self.move(x),
                         lambda x=self.settings.value('window_size', QSize(600, 600)): self.resize(x),
                         self.initTheme]:
             setting()
-                
+        
+        # Connect signal
         self.tabWidget.settingsWidget.stayOnTopSignal.connect(self.ToggleWindowStayOnTop)
 
     def initShortcuts(self):
@@ -191,6 +196,9 @@ class MainWindow(QMainWindow):
                     self.calls = jsonData.get('calls', self.calls)
                     self.connects = jsonData.get('connects', self.connects)
                     self.appointments = jsonData.get('appointments', self.appointments)
+                    self.buyerApts = jsonData.get('buyerApts', self.buyerApts)
+                    self.marketApts = jsonData.get('marketApts', self.marketApts)
+                    self.listingApts = jsonData.get('listingApts', self.listingApts)
                 
                 except json.JSONDecodeError as e:
                     print(e)
@@ -216,7 +224,10 @@ class MainWindow(QMainWindow):
             'call_sessions': self.callSessions,
             'calls': self.calls,
             'connects': self.connects,
-            'appointments': self.appointments
+            'appointments': self.appointments,
+            'buyerApts': self.buyerApts,
+            'marketApts': self.marketApts,
+            'listingApts': self.listingApts
         }
 
         with open(QStandardPaths.writableLocation(QStandardPaths.AppDataLocation) + data_file_name + data_file_extension, 'w+') as file:
@@ -236,6 +247,9 @@ class MainWindow(QMainWindow):
         self.calls = 0
         self.connects = 0
         self.appointments = 0
+        self.buyerApts = 0
+        self.marketApts = 0
+        self.listingApts = 0
 
     @pyqtSlot(bool)
     def ToggleWindowStayOnTop(self, isOnTop):

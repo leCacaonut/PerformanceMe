@@ -53,17 +53,17 @@ class TimerWidget(QWidget):
         
         self.appointments = StretchedLabel("Appointments", self)
 
-        self.bap = StretchedLabel("BAP", self)
+        self.bap = StretchedLabel("Buyer", self)
         self.bapTally = StretchedLabel("0", self)
         self.bapTallyBtn1 = QToolButton(self)
         self.bapTallyBtn2 = QToolButton(self)
 
-        self.map = StretchedLabel("MAP", self)
+        self.map = StretchedLabel("Market", self)
         self.mapTally = StretchedLabel("0", self)
         self.mapTallyBtn1 = QToolButton(self)
         self.mapTallyBtn2 = QToolButton(self)
 
-        self.lap = StretchedLabel("LAP", self)
+        self.lap = StretchedLabel("Listing", self)
         self.lapTally = StretchedLabel("0", self)
         self.lapTallyBtn1 = QToolButton(self)
         self.lapTallyBtn2 = QToolButton(self)
