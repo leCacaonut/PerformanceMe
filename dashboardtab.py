@@ -174,30 +174,30 @@ class DashboardWidget(QWidget):
         self.layoutBase.setStretch(1, 0)
         self.layoutBase.setStretch(2, 3)
         
-    @pyqtSlot(ActionType, QVariant, str, str, str, str, QDate)
-    @pyqtSlot(ActionType, QVariant, str, str, str, str, QDate, int, float)
-    def UpdateDashboard(self, actionType, a_uuid, suburb, postcode, street, number, date, price=0, commission=0):
-        #pylint: disable=too-many-arguments
-        date = date.toString('yyyy/MM/dd')
-        # If uuid doesn't exist, create a new uuid
-        if a_uuid is None:
-            a_uuid = f"{uuid.uuid4()}"
-            # Create an address field
-            data = {'address': {'suburb': suburb, 'postcode': postcode, 'street': street, 'number': number}}
-        else:
-            data = self.dataParent.propertyData[a_uuid]
+    # @pyqtSlot(ActionType, QVariant, str, str, str, str, QDate)
+    # @pyqtSlot(ActionType, QVariant, str, str, str, str, QDate, int, float)
+    # def UpdateDashboard(self, actionType, a_uuid, suburb, postcode, street, number, date, price=0, commission=0):
+    #     #pylint: disable=too-many-arguments
+    #     date = date.toString('yyyy/MM/dd')
+    #     # If uuid doesn't exist, create a new uuid
+    #     if a_uuid is None:
+    #         a_uuid = f"{uuid.uuid4()}"
+    #         # Create an address field
+    #         data = {'address': {'suburb': suburb, 'postcode': postcode, 'street': street, 'number': number}}
+    #     else:
+    #         data = self.dataParent.propertyData[a_uuid]
 
-        if actionType is ActionType.appraisal:
-            data |= {'appraisal_date': date}
-        elif actionType is ActionType.listing:
-            data |= {'listing_date': date}
-        elif actionType is ActionType.sale:
-            data |= {'sale_date': date, 'price': price, 'commission': commission}
+    #     if actionType is ActionType.appraisal:
+    #         data |= {'appraisal_date': date}
+    #     elif actionType is ActionType.listing:
+    #         data |= {'listing_date': date}
+    #     elif actionType is ActionType.sale:
+    #         data |= {'sale_date': date, 'price': price, 'commission': commission}
         
-        self.dataParent.propertyData |= {a_uuid: data}
-        self.dataParent.UpdateDataCount()
+    #     self.dataParent.propertyData |= {a_uuid: data}
+    #     self.dataParent.UpdateDataCount()
 
-        self.UpdateText()
+    #     self.UpdateText()
 
     @pyqtSlot(int, int, int, int)
     def UpdateDashboardGoal(self, appraisalGoal, listingGoal, saleGoal, incomeGoal):
@@ -256,8 +256,8 @@ class DashboardWidget(QWidget):
 
     def AddAction(self, actionType):
         self.addview = DashboardAdd(parent=self.parent().parent(), actionType=actionType)
-        self.addview.okPressed[ActionType, QVariant, str, str, str, str, QDate].connect(self.UpdateDashboard)
-        self.addview.okPressed[ActionType, QVariant, str, str, str, str, QDate, int, float].connect(self.UpdateDashboard)
+        self.addview.okPressed[ActionType, QVariant, str, str, str, str, QDate].connect(self.parent().parent().AddData)
+        self.addview.okPressed[ActionType, QVariant, str, str, str, str, QDate, int, float].connect(self.parent().parent().AddData)
         self.addview.show()
         # Don't need to exec()
         # self.addview.exec()

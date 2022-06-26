@@ -3,12 +3,13 @@
 import os
 import sys
 import json
+import uuid
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget, QWidget, QVBoxLayout, QShortcut
-from PyQt5.QtCore import Qt, QSize, QSettings, QMargins, QStandardPaths, QPoint, pyqtSlot
+from PyQt5.QtCore import Qt, QSize, QSettings, QMargins, QStandardPaths, QPoint, QDate, QVariant, pyqtSlot
 from PyQt5.QtGui import QIcon
 
-from constants import Name, Stylesheets, ActionType, settings_file_name, data_file_name, data_file_extension, TimerPushButtons
+from constants import Name, Stylesheets, ActionType, settings_file_name, data_file_name, data_file_extension, TimerPushButtons, data_version
 
 from dashboardtab import DashboardWidget
 from timertab import TimerWidget
@@ -156,6 +157,7 @@ class MainWindow(QMainWindow):
             for shortcut in self.shortcutList[16:18]:
                 shortcut.setEnabled(True)
             # Conveniently put this here
+            self.UpdateDataCount()
             self.tabWidget.detailsWidget.UpdateList()
         elif self.tabWidget.tabs.tabText(tabIndex) == "Settings":
             for shortcut in self.shortcutList[:18]:
@@ -225,9 +227,10 @@ class MainWindow(QMainWindow):
             'calls': self.calls,
             'connects': self.connects,
             'appointments': self.appointments,
-            'buyerApts': self.buyerApts,
-            'marketApts': self.marketApts,
-            'listingApts': self.listingApts
+            'buyer_appointments': self.buyerApts,
+            'market_appointments': self.marketApts,
+            'listing_appointments': self.listingApts,
+            'dataVersion': data_version
         }
 
         with open(QStandardPaths.writableLocation(QStandardPaths.AppDataLocation) + data_file_name + data_file_extension, 'w+') as file:
@@ -258,6 +261,54 @@ class MainWindow(QMainWindow):
         else:
             self.setWindowFlags(self.windowFlags() & ~Qt.WindowStaysOnTopHint)
         self.show()
+
+    @pyqtSlot(ActionType, QVariant, str, str, str, str, QDate)
+    @pyqtSlot(ActionType, QVariant, str, str, str, str, QDate, int, float)
+    def AddData(self, actionType, a_uuid, suburb, postcode, street, number, date, price=0, commission=0):
+        #pylint: disable=too-many-arguments
+        date = date.toString('yyyy/MM/dd')
+        # If uuid doesn't exist, create a new uuid
+        if a_uuid is None:
+            a_uuid = f"{uuid.uuid4()}"
+            # Create an address field
+            data = {'address': {'suburb': suburb, 'postcode': postcode, 'street': street, 'number': number}}
+        else:
+            data = self.propertyData[a_uuid]
+
+        if actionType is ActionType.appraisal:
+            data |= {'appraisal_date': date}
+        elif actionType is ActionType.listing:
+            data |= {'listing_date': date}
+        elif actionType is ActionType.sale:
+            data |= {'sale_date': date, 'price': price, 'commission': commission}
+        
+        self.propertyData |= {a_uuid: data}
+        self.UpdateDataCount()
+        self.tabWidget.dashboardWidget.UpdateText()
+        self.tabWidget.detailsWidget.UpdateList()
+    
+    def DeleteData(self, actionType, a_uuid):
+        if actionType is ActionType.appraisal:
+            self.propertyData[a_uuid].pop('appraisal_date')
+        elif actionType is ActionType.listing:
+            self.propertyData[a_uuid].pop('listing_date')
+        elif actionType is ActionType.sale:
+            self.propertyData[a_uuid].pop('sale_date')
+            self.propertyData[a_uuid].pop('price')
+            self.propertyData[a_uuid].pop('commission')
+        self.UpdateDataCount()
+
+    def ConvertData(self, actionType, a_uuid, date, price=0, commission=0):
+        date = date.toString('yyyy/MM/dd')
+        data = self.propertyData[a_uuid]
+        
+        if actionType is ActionType.appraisal:
+            data |= {'listing_date': date}
+        elif actionType is ActionType.listing:
+            data |= {'sale_date': date, 'price': price, 'commission': commission}
+        
+        self.propertyData |= {a_uuid: data}
+        self.UpdateDataCount()
 
     def UpdateDataCount(self):
         # Calculate number of appraisals, listings, sales, income

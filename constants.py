@@ -4,7 +4,7 @@
 from enum import Enum, IntEnum, auto
 from dataclasses import dataclass
 
-
+data_version = "1.2.0"
 default_icon_size = 75
 data_file_name = '/userdata'
 data_file_extension = '.json'

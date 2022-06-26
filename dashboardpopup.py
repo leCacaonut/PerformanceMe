@@ -226,7 +226,7 @@ class DashboardSetGoal(QDialog):
 
         # Force gui update
         self.show()
-        self.move(parent.frameGeometry().center().x() - self.frameGeometry().width() / 2, parent.frameGeometry().center().y() - self.frameGeometry().height() / 2)
+        self.move(int(parent.frameGeometry().center().x() - self.frameGeometry().width() / 2), int(parent.frameGeometry().center().y() - self.frameGeometry().height() / 2))
         # Mouse event
         self.oldPos = self.pos()
         

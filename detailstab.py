@@ -1,18 +1,21 @@
 """Details tab"""
 
-from PyQt5.QtWidgets import QWidget, QGridLayout, QHBoxLayout, QLabel, QMenu, QListWidgetItem, QPushButton
-from PyQt5.QtCore import Qt, QDate, pyqtSlot, QVariant
+from argparse import Action
+from PyQt5.QtWidgets import QWidget, QGridLayout, QHBoxLayout, QLabel, QMenu, QPushButton
+from PyQt5.QtCore import Qt, QDate, pyqtSlot, QVariant, QModelIndex
 
 from constants import ActionType, SortType
 
-from customsubclasses import CustomQListWidget
+from customsubclasses import CustomQListWidget, CustomQListWidgetItem
 from detailspopup import DetailEdit, DetailConvert
+from dashboardpopup import DashboardAdd
 
 class DetailsWidget(QWidget):
     propertyData = {}
     sortType = SortType.date
-    sortOrder = Qt.DescendingOrder
+    sortOrder = Qt.AscendingOrder
 
+    addView = None
     dialog = None
 
     def __init__(self, parent=None):
@@ -24,7 +27,7 @@ class DetailsWidget(QWidget):
         self.bLayout = QHBoxLayout()
         self.sortLabel = QLabel("Sort by:", self)
         self.sortTypeButton = QPushButton("Date", self)
-        self.sortOrderButton = QPushButton("Descending", self)
+        self.sortOrderButton = QPushButton("Ascending", self)
         self.sortLabel.setFixedWidth(60)
         self.sortTypeButton.clicked.connect(self.ChangeSortType)
         self.sortOrderButton.clicked.connect(self.ChangeSortOrder)
@@ -35,19 +38,19 @@ class DetailsWidget(QWidget):
         # Label setup
         self.appraisal = QLabel("Appraisals")
         self.appraisal.setStyleSheet("font-size: 18px")
-        self.nappraisal = QLabel("0")
-        self.nappraisal.setStyleSheet("font-size: 14px")
-        self.nappraisal.setAlignment(Qt.AlignRight)
+        self.nAppraisal = QLabel("0")
+        self.nAppraisal.setStyleSheet("font-size: 14px")
+        self.nAppraisal.setAlignment(Qt.AlignRight)
         self.listing = QLabel("Listings")
         self.listing.setStyleSheet("font-size: 18px")
-        self.nlisting = QLabel("0")
-        self.nlisting.setStyleSheet("font-size: 14px")
-        self.nlisting.setAlignment(Qt.AlignRight)
+        self.nListing = QLabel("0")
+        self.nListing.setStyleSheet("font-size: 14px")
+        self.nListing.setAlignment(Qt.AlignRight)
         self.sale = QLabel("Sales")
         self.sale.setStyleSheet("font-size: 18px")
-        self.nsale = QLabel("0")
-        self.nsale.setStyleSheet("font-size: 14px")
-        self.nsale.setAlignment(Qt.AlignRight)
+        self.nSale = QLabel("0")
+        self.nSale.setStyleSheet("font-size: 14px")
+        self.nSale.setAlignment(Qt.AlignRight)
 
         # List setup
         self.appraisalList = CustomQListWidget(self)
@@ -69,49 +72,108 @@ class DetailsWidget(QWidget):
         self.listingList.customContextMenuRequested.connect(lambda event, x=ActionType.listing: self.OpenContextMenu(event, x))
         self.saleList.setContextMenuPolicy(Qt.CustomContextMenu)
         self.saleList.customContextMenuRequested.connect(lambda event, x=ActionType.sale: self.OpenContextMenu(event, x))
+        
+        # Double click handling
+        self.appraisalList.itemDoubleClicked.connect(lambda _, x=ActionType.appraisal: self.EditDetails(x))
+        self.listingList.itemDoubleClicked.connect(lambda _, x=ActionType.listing: self.EditDetails(x))
+        self.saleList.itemDoubleClicked.connect(lambda _, x=ActionType.sale: self.EditDetails(x))
 
         self.layout.addLayout(self.bLayout, 1, 1, 1, 2)
         self.layout.addWidget(self.appraisal, 2, 1)
-        self.layout.addWidget(self.nappraisal, 2, 2)
+        self.layout.addWidget(self.nAppraisal, 2, 2)
         self.layout.addWidget(self.appraisalList, 3, 1, 1, 2)
         self.layout.addWidget(self.listing, 4, 1)
-        self.layout.addWidget(self.nlisting, 4, 2)
+        self.layout.addWidget(self.nListing, 4, 2)
         self.layout.addWidget(self.listingList, 5, 1, 1, 2)
         self.layout.addWidget(self.sale, 6, 1)
-        self.layout.addWidget(self.nsale, 6, 2)
+        self.layout.addWidget(self.nSale, 6, 2)
         self.layout.addWidget(self.saleList, 7, 1, 1, 2)
+
+    # Widget focus handler
+    def WidgetFocusManager(self, widget):
+        [w.setCurrentIndex(QModelIndex()) for w in [self.appraisalList, self.listingList, self.saleList] if w is not widget]
 
     def UpdateList(self):
         self.appraisalList.clear()
         self.listingList.clear()
         self.saleList.clear()
-        for data in self.dataParent.propertyData:
-            if 'appraisal_date' in self.dataParent.propertyData[data]:
-                widgetText = self.AddressToString(data, ActionType.appraisal)
+        for uuid in self.dataParent.propertyData:
+            if 'appraisal_date' in self.dataParent.propertyData[uuid]:
+                widgetText = self.AddressToString(uuid, ActionType.appraisal)
                 
-                item = QListWidgetItem(widgetText, self.appraisalList)
-                item.setData(Qt.UserRole, self.dataParent.propertyData[data])
-                item.setData(Qt.UserRole + 1, data)
+                item = CustomQListWidgetItem(widgetText, self.appraisalList)
+                item.sortType = self.sortType
+                # Data required to convert
+                item.setData(Qt.UserRole, self.dataParent.propertyData[uuid])
+                item.setData(Qt.UserRole + 1, uuid)
+                item.setData(Qt.UserRole + 2, self.dataParent.propertyData[uuid]['appraisal_date'])
                 self.appraisalList.addItem(item)
-            if 'listing_date' in self.dataParent.propertyData[data]:
-                widgetText = self.AddressToString(data, ActionType.listing)
+            if 'listing_date' in self.dataParent.propertyData[uuid]:
+                widgetText = self.AddressToString(uuid, ActionType.listing)
                 
-                item = QListWidgetItem(widgetText, self.listingList)
-                item.setData(Qt.UserRole, self.dataParent.propertyData[data])
-                item.setData(Qt.UserRole + 1, data)
+                item = CustomQListWidgetItem(widgetText, self.listingList)
+                item.sortType = self.sortType
+                # Data required to convert
+                item.setData(Qt.UserRole, self.dataParent.propertyData[uuid])
+                item.setData(Qt.UserRole + 1, uuid)
+                item.setData(Qt.UserRole + 2, self.dataParent.propertyData[uuid]['listing_date'])
                 self.listingList.addItem(item)
-            if 'sale_date' in self.dataParent.propertyData[data]:
-                widgetText = self.AddressToString(data, ActionType.sale)
+            if 'sale_date' in self.dataParent.propertyData[uuid]:
+                widgetText = self.AddressToString(uuid, ActionType.sale)
                 
-                item = QListWidgetItem(
+                item = CustomQListWidgetItem(
                     widgetText + "\t $" +
-                    f"{self.dataParent.propertyData[data]['price']:,.0f}" + " @ " +
-                    f"{self.dataParent.propertyData[data]['commission']:,.2f}" + "%",
+                    f"{self.dataParent.propertyData[uuid]['price']:,.0f}" + " @ " +
+                    f"{self.dataParent.propertyData[uuid]['commission']:,.2f}" + "%",
                     self.saleList
                 )
-                item.setData(Qt.UserRole, self.dataParent.propertyData[data])
-                item.setData(Qt.UserRole + 1, data)
+                item.sortType = self.sortType
+                # Data required to convert
+                item.setData(Qt.UserRole, self.dataParent.propertyData[uuid])
+                item.setData(Qt.UserRole + 1, uuid)
+                item.setData(Qt.UserRole + 2, self.dataParent.propertyData[uuid]['sale_date'])
                 self.saleList.addItem(item)
+        
+        self.nAppraisal.setText(str(self.dataParent.appraisals))
+        self.nListing.setText(str(self.dataParent.listings))
+        self.nSale.setText(str(self.dataParent.sales))
+
+    def AddDetails(self, actionType):
+        self.addView = DashboardAdd(parent=self.parent().parent(), actionType=actionType)
+        self.addView.okPressed[ActionType, QVariant, str, str, str, str, QDate].connect(self.parent().parent().AddData)
+        self.addView.okPressed[ActionType, QVariant, str, str, str, str, QDate, int, float].connect(self.parent().parent().AddData)
+        self.addView.show()
+
+    def EditDetails(self, actionType):
+        if actionType is ActionType.appraisal:
+            self.dialog = DetailEdit(
+                actionType,
+                self.appraisalList.currentItem().data(Qt.UserRole + 1),
+                self.appraisalList.currentItem().data(Qt.UserRole)['address'],
+                QDate.fromString(self.appraisalList.currentItem().data(Qt.UserRole)['appraisal_date'], 'yyyy/MM/dd'),
+                parent=self.parent().parent()
+            )
+            self.dialog.okPressed[ActionType, QVariant, dict, QDate].connect(self.UpdateDetails)
+        elif actionType is ActionType.listing:
+            self.dialog = DetailEdit(
+                actionType,
+                self.listingList.currentItem().data(Qt.UserRole + 1),
+                self.listingList.currentItem().data(Qt.UserRole)['address'],
+                QDate.fromString(self.listingList.currentItem().data(Qt.UserRole)['listing_date'], 'yyyy/MM/dd'),
+                parent=self.parent().parent()
+            )        
+            self.dialog.okPressed[ActionType, QVariant, dict, QDate].connect(self.UpdateDetails)
+        elif actionType is ActionType.sale:
+            self.dialog = DetailEdit(
+                actionType,
+                self.saleList.currentItem().data(Qt.UserRole + 1),
+                self.saleList.currentItem().data(Qt.UserRole)['address'],
+                QDate.fromString(self.saleList.currentItem().data(Qt.UserRole)['sale_date'], 'yyyy/MM/dd'),
+                self.saleList.currentItem().data(Qt.UserRole)['price'],
+                self.saleList.currentItem().data(Qt.UserRole)['commission'],
+                parent=self.parent().parent()
+            )
+            self.dialog.okPressed[ActionType, QVariant, dict, QDate, int, float].connect(self.UpdateDetails)
 
     @pyqtSlot(ActionType, QVariant, dict, QDate)
     @pyqtSlot(ActionType, QVariant, dict, QDate, int, float)
@@ -131,64 +193,47 @@ class DetailsWidget(QWidget):
         self.UpdateList()
 
     def DeleteDetails(self, actionType, a_uuid):
-
-        if actionType is ActionType.appraisal:
-            self.dataParent.propertyData[a_uuid].pop('appraisal_date')
-        elif actionType is ActionType.listing:
-            self.dataParent.propertyData[a_uuid].pop('listing_date')
-        elif actionType is ActionType.sale:
-            self.dataParent.propertyData[a_uuid].pop('sale_date')
-            self.dataParent.propertyData[a_uuid].pop('price')
-            self.dataParent.propertyData[a_uuid].pop('commission')
+        self.parent().parent().DeleteData(actionType, a_uuid)
+        self.UpdateList()
 
     @pyqtSlot(ActionType, QVariant, QDate)
     @pyqtSlot(ActionType, QVariant, QDate, int, float)
     def ConvertDetails(self, actionType, a_uuid, date, price=0, commission=0):
-        date = date.toString('yyyy/MM/dd')
-        data = self.dataParent.propertyData[a_uuid]
-        
-        if actionType is ActionType.appraisal:
-            data |= {'listing_date': date}
-        elif actionType is ActionType.listing:
-            data |= {'sale_date': date, 'price': price, 'commission': commission}
-        
-        self.dataParent.propertyData |= {a_uuid: data}
+        self.parent().parent().ConvertData(actionType, a_uuid, date, price=0, commission=0)
         self.UpdateList()
 
     def OpenContextMenu(self, event, actionType):
-        # If nothing selected, don't open a menu
-        if len(self.appraisalList.selectedItems()) + len(self.listingList.selectedItems()) + len(self.saleList.selectedItems()) == 0:
-            return
-        # Otherwise
         menu = QMenu()
-        menu.addAction("Edit")
-        menu.addAction("Delete")
+        # If nothing selected, only have add option
+        if len(self.appraisalList.selectedItems()) + len(self.listingList.selectedItems()) + len(self.saleList.selectedItems()) == 0:
+            menu.addAction("Add")
+        else:
+            # Otherwise
+            menu.addAction("Add")
+            menu.addAction("Edit")
+            menu.addAction("Delete")
 
-        # Actions added different depending on number of selection
-        if actionType is ActionType.appraisal:
-            menu.addSeparator()
-            menu.addAction("Convert to listing")
-        elif actionType is ActionType.listing:
-            menu.addSeparator()
-            menu.addAction("Convert to sale")
+            # Actions added different depending on number of selection
+            if actionType is ActionType.appraisal:
+                menu.addSeparator()
+                menu.addAction("Convert to listing")
+            elif actionType is ActionType.listing:
+                menu.addSeparator()
+                menu.addAction("Convert to sale")
 
         # Get menu data (and open at click position)
         action = menu.exec(self.sender().mapToGlobal(event))
         if not action:
             return
 
+        if action.text() == "Add":
+            self.AddDetails(actionType)
+
         # After all checks have passed
         # Handle appraisal case
         if actionType is ActionType.appraisal:
             if action.text() == "Edit":
-                self.dialog = DetailEdit(
-                    actionType,
-                    self.appraisalList.currentItem().data(Qt.UserRole + 1),
-                    self.appraisalList.currentItem().data(Qt.UserRole)['address'],
-                    QDate.fromString(self.appraisalList.currentItem().data(Qt.UserRole)['appraisal_date'], 'yyyy/MM/dd'),
-                    parent=self.parent().parent()
-                )
-                self.dialog.okPressed[ActionType, QVariant, dict, QDate].connect(self.UpdateDetails)
+                self.EditDetails(actionType)
 
             elif action.text() == "Delete":
                 # Get information about the item to be deleted
@@ -209,14 +254,7 @@ class DetailsWidget(QWidget):
         # Handle listing case
         elif actionType is ActionType.listing:
             if action.text() == "Edit":
-                self.dialog = DetailEdit(
-                    actionType,
-                    self.listingList.currentItem().data(Qt.UserRole + 1),
-                    self.listingList.currentItem().data(Qt.UserRole)['address'],
-                    QDate.fromString(self.listingList.currentItem().data(Qt.UserRole)['listing_date'], 'yyyy/MM/dd'),
-                    parent=self.parent().parent()
-                )
-                self.dialog.okPressed[ActionType, QVariant, dict, QDate].connect(self.UpdateDetails)
+                self.EditDetails(actionType)
 
             elif action.text() == "Delete":
                 # Get information about the item to be deleted
@@ -237,16 +275,7 @@ class DetailsWidget(QWidget):
         # Handle sale case
         elif actionType is ActionType.sale:
             if action.text() == "Edit":
-                self.dialog = DetailEdit(
-                    actionType,
-                    self.saleList.currentItem().data(Qt.UserRole + 1),
-                    self.saleList.currentItem().data(Qt.UserRole)['address'],
-                    QDate.fromString(self.saleList.currentItem().data(Qt.UserRole)['sale_date'], 'yyyy/MM/dd'),
-                    self.saleList.currentItem().data(Qt.UserRole)['price'],
-                    self.saleList.currentItem().data(Qt.UserRole)['commission'],
-                    parent=self.parent().parent()
-                )
-                self.dialog.okPressed[ActionType, QVariant, dict, QDate, int, float].connect(self.UpdateDetails)
+                self.EditDetails(actionType)
 
             elif action.text() == "Delete":
                 # Get information about the item to be deleted
@@ -290,35 +319,42 @@ class DetailsWidget(QWidget):
         if actionType is ActionType.sale:
             date = self.dataParent.propertyData[data]['sale_date']
 
-        if self.sortType is SortType.date:
-            return (
+        return (
                 date + "\t " +
                 self.dataParent.propertyData[data]['address']['number'] + " " +
                 self.dataParent.propertyData[data]['address']['street'] + ", " +
                 self.dataParent.propertyData[data]['address']['suburb'] + " " +
                 self.dataParent.propertyData[data]['address']['postcode']
             )
-        elif self.sortType is SortType.suburb:
-            return (
-                self.dataParent.propertyData[data]['address']['suburb'] + " " +
-                self.dataParent.propertyData[data]['address']['postcode'] + ", " +
-                self.dataParent.propertyData[data]['address']['street'] + ", " +
-                self.dataParent.propertyData[data]['address']['number'] + "\t " +
-                date
-            )
-        elif self.sortType is SortType.street:
-            return (
-                self.dataParent.propertyData[data]['address']['street'] + ", " +
-                self.dataParent.propertyData[data]['address']['number'] + ", " +
-                self.dataParent.propertyData[data]['address']['suburb'] + " " +
-                self.dataParent.propertyData[data]['address']['postcode'] + "\t " +
-                date
-            )
-        elif self.sortType is SortType.number:
-            return (
-                self.dataParent.propertyData[data]['address']['number'] + " " +
-                self.dataParent.propertyData[data]['address']['street'] + ", " +
-                self.dataParent.propertyData[data]['address']['suburb'] + " " +
-                self.dataParent.propertyData[data]['address']['postcode'] + "\t " +
-                date
-            )
+        # if self.sortType is SortType.date:
+        #     return (
+        #         date + "\t " +
+        #         self.dataParent.propertyData[data]['address']['number'] + " " +
+        #         self.dataParent.propertyData[data]['address']['street'] + ", " +
+        #         self.dataParent.propertyData[data]['address']['suburb'] + " " +
+        #         self.dataParent.propertyData[data]['address']['postcode']
+        #     )
+        # elif self.sortType is SortType.suburb:
+        #     return (
+        #         self.dataParent.propertyData[data]['address']['suburb'] + " " +
+        #         self.dataParent.propertyData[data]['address']['postcode'] + ", " +
+        #         self.dataParent.propertyData[data]['address']['street'] + ", " +
+        #         self.dataParent.propertyData[data]['address']['number'] + "\t " +
+        #         date
+        #     )
+        # elif self.sortType is SortType.street:
+        #     return (
+        #         self.dataParent.propertyData[data]['address']['street'] + ", " +
+        #         self.dataParent.propertyData[data]['address']['number'] + ", " +
+        #         self.dataParent.propertyData[data]['address']['suburb'] + " " +
+        #         self.dataParent.propertyData[data]['address']['postcode'] + "\t " +
+        #         date
+        #     )
+        # elif self.sortType is SortType.number:
+        #     return (
+        #         self.dataParent.propertyData[data]['address']['number'] + " " +
+        #         self.dataParent.propertyData[data]['address']['street'] + ", " +
+        #         self.dataParent.propertyData[data]['address']['suburb'] + " " +
+        #         self.dataParent.propertyData[data]['address']['postcode'] + "\t " +
+        #         date
+        #     )
