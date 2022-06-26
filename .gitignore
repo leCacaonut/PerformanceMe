@@ -358,4 +358,4 @@ build/
 dist/
 *.zip
 autopytoexe.json
-dir_to_ignore/examples
+examples/
