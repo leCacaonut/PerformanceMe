@@ -199,7 +199,7 @@ class DetailsWidget(QWidget):
     @pyqtSlot(ActionType, QVariant, QDate)
     @pyqtSlot(ActionType, QVariant, QDate, int, float)
     def ConvertDetails(self, actionType, a_uuid, date, price=0, commission=0):
-        self.parent().parent().ConvertData(actionType, a_uuid, date, price=0, commission=0)
+        self.parent().parent().ConvertData(actionType, a_uuid, date, price, commission)
         self.UpdateList()
 
     def OpenContextMenu(self, event, actionType):
