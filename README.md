@@ -8,7 +8,7 @@ KPI program for real estate agents
 
 ## Download
 [*Releases*](https://github.com/leCacaonut/PerformanceMe/releases/)  
-[*Download*](https://github.com/leCacaonut/PerformanceMe/releases/download/1.2.0a/PerformanceMe.zip)
+[*Download 1.2.0a*](https://github.com/leCacaonut/PerformanceMe/releases/download/1.2.0a/PerformanceMe.zip)
 
 ## Examples
 <img src="https://raw.githubusercontent.com/leCacaonut/PerformanceMe/main/examples/1.png" alt="Example 1" />
