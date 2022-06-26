@@ -10,9 +10,9 @@ KPI program for real estate agents
 [*Releases*](https://github.com/leCacaonut/PerformanceMe/releases/)
 
 ## Examples
-![alt text](https://github.com/leCacaonut/PerformanceMe/tree/main/examples/1.png "Example 1")
-![alt text](https://github.com/leCacaonut/PerformanceMe/tree/main/examples/2.png "Example 2")
-![alt text](https://github.com/leCacaonut/PerformanceMe/tree/main/examples/3.png "Example 3")
+![Example 1](https://github.com/leCacaonut/PerformanceMe/blob/main/examples/1.png "Example 1")
+![Example 2](https://github.com/leCacaonut/PerformanceMe/blob/main/examples/2.png "Example 2")
+![Example 3](https://github.com/leCacaonut/PerformanceMe/blob/main/examples/3.png "Example 3")
 
 ## Using python
 Requires python 3.9+  
