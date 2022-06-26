@@ -288,3 +288,4 @@ class TimerWidget(QWidget):
         self.bapTally.setText("0")
         self.mapTally.setText("0")
         self.lapTally.setText("0")
+        self.tally = Tally()
