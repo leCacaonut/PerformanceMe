@@ -7,10 +7,11 @@ KPI program for real estate agents
 - Property status tracker
 
 ## Download
-[*Releases*](https://github.com/leCacaonut/PerformanceMe/releases/)
+[*Releases*](https://github.com/leCacaonut/PerformanceMe/releases/)  
+[*Download*](https://github.com/leCacaonut/PerformanceMe/releases/download/1.2.0a/PerformanceMe.zip)
 
 ## Examples
-![Example 1](https://raw.githubusercontent.com/leCacaonut/PerformanceMe/main/examples/1.png "Example 1")
+<img src="https://raw.githubusercontent.com/leCacaonut/PerformanceMe/main/examples/1.png" alt="Example 1" />
 ![Example 2](https://raw.githubusercontent.com/leCacaonut/PerformanceMe/main/examples/2.png "Example 2")
 ![Example 3](https://raw.githubusercontent.com/leCacaonut/PerformanceMe/main/examples/3.png "Example 3")
 
