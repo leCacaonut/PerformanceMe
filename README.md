@@ -12,8 +12,8 @@ KPI program for real estate agents
 
 ## Examples
 <img src="https://raw.githubusercontent.com/leCacaonut/PerformanceMe/main/examples/1.png" alt="Example 1" />
-![Example 2](https://raw.githubusercontent.com/leCacaonut/PerformanceMe/main/examples/2.png "Example 2")
-![Example 3](https://raw.githubusercontent.com/leCacaonut/PerformanceMe/main/examples/3.png "Example 3")
+<img src="https://raw.githubusercontent.com/leCacaonut/PerformanceMe/main/examples/2.png" alt="Example 2" />
+<img src="https://raw.githubusercontent.com/leCacaonut/PerformanceMe/main/examples/3.png" alt="Example 3" />
 
 ## Using python
 Requires python 3.9+  
