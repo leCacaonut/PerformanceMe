@@ -198,9 +198,9 @@ class MainWindow(QMainWindow):
                     self.calls = jsonData.get('calls', self.calls)
                     self.connects = jsonData.get('connects', self.connects)
                     self.appointments = jsonData.get('appointments', self.appointments)
-                    self.buyerApts = jsonData.get('buyerApts', self.buyerApts)
-                    self.marketApts = jsonData.get('marketApts', self.marketApts)
-                    self.listingApts = jsonData.get('listingApts', self.listingApts)
+                    self.buyerApts = jsonData.get('buyer_appointments', self.buyerApts)
+                    self.marketApts = jsonData.get('market_appointments', self.marketApts)
+                    self.listingApts = jsonData.get('listing_appointments', self.listingApts)
                 
                 except json.JSONDecodeError as e:
                     print(e)
